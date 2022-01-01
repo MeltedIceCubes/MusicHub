@@ -5,19 +5,33 @@ Raspberry Pi Music Hub
 ## Things to complete
 
 ### Pi side: 
-- [ ] Commands to control "bluetoothctl" 
+- bluetoothctl
+  - [ ] Run bluetoothctl commands
   - [ ] Switch bluetooth dongles.
-  - [ ] Run bluetoothctl
   - [ ] Recieve and parse output.
+  - [ ] Pipe to I2C output program
+  - [ ] Recieve data from Arduino switches
   
 - [ ] I2C communication 
   - [ ] Decide on character codes to send. 
-  - [ ] Decide on Data format. 
-  - 
+  - [ ] Decide on Data format.
+   - Volume level display 
+   - Scrolling text display
+   - Misc LED lights
+  - [ ] Make communication script 
 
 ### Arduino Side:
-- [ ] I2C Recieve. 
-- [ ] PCB for displays and switches.
+- [ ] Make standard display library
+- [ ] I2C Recieve
+- [ ] Decode I2C contents to display
+- [ ] Pipe switch data back to Pi
 
-### Display module. 
-- [ ] 
+### Display Side:  
+- [ ] Figure out circuit
+- [ ] PCB for displays and switches
+
+
+Change Log: 
+2022/1/1 : 
+ - Added ReadMe
+ - Added To Do  
