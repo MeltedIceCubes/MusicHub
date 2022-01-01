@@ -16,7 +16,7 @@ Raspberry Pi Music Hub
   - [ ] Decide on character codes to send. 
    - Alpha
    - Numbers
-   - Special Characters \[,],:,(loading animation) 
+   - Special Characters \[, ], :, (loading animation) 
    - LED light up codes.  
   - [ ] Decide on Data format.
    - Volume level display 
