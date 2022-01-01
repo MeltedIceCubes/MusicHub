@@ -12,7 +12,7 @@ Raspberry Pi Music Hub
   - [ ] Pipe to I2C output program
   - [ ] Recieve data from Arduino switches
   
-- [ ] I2C communication 
+- I2C communication 
   - [ ] Decide on character codes to send. 
   - [ ] Decide on Data format.
    - Volume level display 
