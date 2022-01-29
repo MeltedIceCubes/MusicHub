@@ -1,5 +1,8 @@
 #!/bin/bash
-
+pipe_name="parsePipe"
+function createPipe(){
+	mkfifo $pipe_name #makes pipe to talk with python parser.
+}
 function agentOn() { 
 	echo "agent on" >&"${btPipe[1]}" 
 }
@@ -24,13 +27,21 @@ function pairableOn() {
 function pairableOff() { 
 	echo "pairable off" >&"${btPipe[1]}" 
 }
-
+function scanOn(){
+	echo "scan on" >&"${btPipe[1]}"
+}
+function scanOff(){
+	echo "scan off" >&"${btPipe[1]}"
+}
+function NoInputNoOutput(){
+	echo "agent NoInputNoOutput" >&"${btPipe[1]}"
+}
 function readPipe() { 
 	#IFS= read -r -u "${btPipe[0]}" line  #Get buffer 
 	#echo $line | sed 's/\x1B\[[0-9;]*[JKmsu]//g; s/\r/\n/g'  >&2  #Removes control characters. 
 	IFS= read -r -u "${btPipe[0]}" line  #Get buffer 
 	line=$(echo "$line" | sed 's/\x1B\[[0-9;]*[JKmsu]//g; s/\r/\n/g')
-	echo $line
+	echo $line >> content.txt
 	
 }
 
@@ -41,10 +52,25 @@ sleep 2
 
 while : ; do  #Loop infinitly "break" to end loop
 	readPipe
-	agentOn
-	sleep 2
-	readPipe 
-	agentOff
-	sleep 2
+	scanOn
+	sleep 1
+	readPipe
+	discoverableOn
+	sleep 1
+	readPipe
+	pairableOn
+	sleep 1
+	readPipe
+	sleep 5
+	readPipe
+	sleep 5 
+	readPipe
+	sleep 5
+	readPipe
+	sleep 5
+	readPipe
+	sleep 5
+	
+	
 done
 echo "Script exit."

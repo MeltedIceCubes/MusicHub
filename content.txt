@@ -1,0 +1,381 @@
+Agent registered
+[bluetooth]# scan on
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Discovery started
+[bluetooth]# [CHG] Controller 00:1A:7D:DA:71:14 Discovering: yes
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# [NEW] Device 4E:0A:67:AC:55:05 4E-0A-67-AC-55-05
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# [NEW] Device 57:09:B1:9C:BA:34 57-09-B1-9C-BA-34
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# [CHG] Device 42:92:45:48:98:D2 RSSI: -78
+[bluetooth]# [CHG] Device 42:92:45:48:98:D2 TxPower: 24
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# [CHG] Device 42:92:45:48:98:D2 RSSI: -65
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+[bluetooth]# scan on
+[bluetooth]# Failed to start discovery: org.bluez.Error.InProgress
+Agent registered
+[bluetooth]# scan on
+[bluetooth]# Discovery started
+[bluetooth]# [CHG] Controller 00:1A:7D:DA:71:14 Discovering: yes
+[bluetooth]# [NEW] Device 74:4C:E0:CA:19:6A 74-4C-E0-CA-19-6A
+[bluetooth]# [NEW] Device A8:54:B2:1A:82:C7 Panasonic Viera
+Agent registered
+[bluetooth]# scan on
+[bluetooth]# Discovery started
+[bluetooth]# [CHG] Controller 00:1A:7D:DA:71:14 Discovering: yes
+[bluetooth]# [CHG] Device 74:4C:E0:CA:19:6A RSSI: -64
+[bluetooth]# [CHG] Device 74:4C:E0:CA:19:6A TxPower: 7
+[bluetooth]# [CHG] Device 74:4C:E0:CA:19:6A ManufacturerData Key: 0x004c
+[bluetooth]# [CHG] Device 74:4C:E0:CA:19:6A ManufacturerData Value:
+[bluetooth]# 10 06 2b 1e 7c 04 fb 05 ..+.|...
+[bluetooth]# [CHG] Device 52:B0:34:EF:36:61 RSSI: -62
+[bluetooth]# [CHG] Device 52:B0:34:EF:36:61 TxPower: 24
+[bluetooth]# [CHG] Device A8:54:B2:1A:82:C7 RSSI: -74
