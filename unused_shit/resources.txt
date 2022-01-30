@@ -11,3 +11,11 @@ https://stackoverflow.com/questions/54443399/bash-inline-version-of-piping-file-
 https://www.linuxquestions.org/questions/programming-9/control-bluetoothctl-with-scripting-4175615328/
 
 #https://www.linuxquestions.org/questions/programming-9/control-bluetoothctl-with-scripting-4175615328/
+
+
+
+*********************************
+***   Bluetooth sink levels   ***
+*********************************
+https://stackoverflow.com/questions/52311637/pulseaudio-setting-up-sinks-and-sources-for-a2dp-and-hfp-connections
+https://menno.io/posts/pulseaudio_monitoring/

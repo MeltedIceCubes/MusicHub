@@ -41,7 +41,8 @@ function readPipe() {
 	#echo $line | sed 's/\x1B\[[0-9;]*[JKmsu]//g; s/\r/\n/g'  >&2  #Removes control characters. 
 	IFS= read -r -u "${btPipe[0]}" line  #Get buffer 
 	line=$(echo "$line" | sed 's/\x1B\[[0-9;]*[JKmsu]//g; s/\r/\n/g')
-	echo $line >> content.txt
+	#echo $line >> content.txt
+	echo $line >> pipe0
 	
 }
 

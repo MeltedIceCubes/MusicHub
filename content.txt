@@ -379,3 +379,17 @@ Agent registered
 [bluetooth]# [CHG] Device 52:B0:34:EF:36:61 RSSI: -62
 [bluetooth]# [CHG] Device 52:B0:34:EF:36:61 TxPower: 24
 [bluetooth]# [CHG] Device A8:54:B2:1A:82:C7 RSSI: -74
+Agent registered
+[HK Onyx Studio 6]# scan on
+[HK Onyx Studio 6]# Failed to start discovery: org.bluez.Error.NotReady
+[HK Onyx Studio 6]# discoverable on
+[HK Onyx Studio 6]# Changing discoverable on succeeded
+[HK Onyx Studio 6]# [CHG] Controller 00:1A:7D:DA:71:15 Discoverable: yes
+[HK Onyx Studio 6]# pairable on
+Agent registered
+[HK Onyx Studio 6]# scan on
+[HK Onyx Studio 6]# Failed to start discovery: org.bluez.Error.NotReady
+[HK Onyx Studio 6]# discoverable on
+[HK Onyx Studio 6]# Changing discoverable on succeeded
+[HK Onyx Studio 6]# pairable on
+[HK Onyx Studio 6]# Changing pairable on succeeded
