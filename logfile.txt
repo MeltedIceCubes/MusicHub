@@ -1,1 +1,13 @@
-agent off
+.*
+Agent registered
+[0;94m[HK Onyx Studio 6][0m# .*
+[1;39mInvalid command in menu main: [0m
+[1;39m
+Use "help" for a list of available commands in a menu.
+Use "menu <submenu>" if you want to enter any submenu.
+Use "back" if you want to return to menu main.[0m
+[0;94m[HK Onyx Studio 6][0m# 
+
+b'Agent registered' 
+b'Controller 00:1A:7D:DA:71:13 MusicHub_Output [default]'
+b'\x1b[0;94m['
