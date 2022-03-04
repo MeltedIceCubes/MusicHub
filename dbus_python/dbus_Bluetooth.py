@@ -99,12 +99,17 @@ def on_device_found(device: device.Device):
     except:
         print('Error')
 
+
 found_bob: device.Device = None
+
+
 def connect_to_Bob(device: device.Device):
     global found_bob
     if device.name == "Bob":
         found_bob = device
 
+def clear_dbus_obj():
+    pass
 # ****************
 # ***   Main   ***
 # ****************
@@ -144,34 +149,6 @@ def main():
 
     print("Powering off")
     Hub_Input1.powered = False
-
-def example_main():
-    # Bluetoothドングルの取得
-    dongles = adapter.list_adapters()
-    #print('dongles available: ', dongles)  # List dongles
-
-    check_for_dongles(dongles, AdapterList)
-
-    dongle = adapter.Adapter(dongles[0])
-
-    # Bluetoothドングルの電源が切れている場合は、電源を入れる
-    if not dongle.powered:
-        dongle.powered = True
-        print('Now powered: ', dongle.powered)
-    print('Start discovering')
-
-    # デバイスが見つかったときのコールバック
-    dongle.on_device_found = on_device_found
-
-    # デバイスのスキャン開始
-    dongle.nearby_discovery(timeout=20)
-
-    # デバイスが見つかったら、ペアリング
-    if (found_device != None):
-        found_device.pair()
-
-    # dongle.powered = False
-
 
 if __name__ == '__main__':
     print(__name__)
