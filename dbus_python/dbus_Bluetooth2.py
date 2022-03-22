@@ -1,11 +1,13 @@
 #   ****************************************
 #   ***   Refactored dbus_Bluetooth.py   ***
 #   ****************************************
-# TODO : Scan for other devices (phone, headset, etc.)  with adapter.Adapter()
+# DONE : Scan for other devices (phone, headset, etc.)  with adapter.Adapter()
 # !   Implemented as  :   Hub_Input1_Dongle.nearby_discovery()
-# TODO : Clear any dbus object that gets saved after a scan
+# DONE : Clear any dbus object that gets saved after a scan
 #       - Ex. /org/bluez/hci2/dev_40_DE_65_18_E5_06
-# TODO : Register with device.Device(adapter_addr, device_addr)
+# DONE : Register with device.Device(adapter_addr, device_addr)
+# TODO : Change agent capabilities with a function.
+# TODO : Accept pairing requests with NoInputNoOutput.
 
 
 
@@ -25,10 +27,25 @@ MAC_LIST = ["00:1A:7D:DA:71:13",
             "00:1A:7D:DA:71:14",
             "00:1A:7D:DA:71:15",
             "DC:A6:32:92:BF:F5"]
+
+# Capabilities
+DISPLAY_ONLY         = "DisplayOnly"
+DISPLAY_YES_NO       = "DisplayYesNo"
+KEYBOARD_ONLY        = "KeyboardOnly"
+NO_INPUT_NO_OUTPUT   = "NoInputNoOutput"
+KEYBOARD_DISPLAY     = "KeyboardDisplay"
+
+BLUEZ_BUS_NAME       = 'org.bluez'
+BLUEZ_OBJ_PATH       = '/org/bluez'
+AGENT_INTERFACE      = 'org.bluez.Agent1'
+AGENT_PATH           = '/test/agent'
+AGENT_MANAGER        = 'org.bluez.AgentManager1'
+
 Hub_Output_Dongle = None
 Hub_Input1_Dongle = None
 Hub_Input2_Dongle = None
 Pi_Bt_Dongle      = None
+
 FoundDevices = list()
 DBusStragglers = list()
 
@@ -50,21 +67,29 @@ def initdongles():
     global Pi_Bt_Dongle
     try:
         Hub_Output_Dongle = adapter.Adapter(MAC_LIST[0])
+        Hub_Output_Dongle.on_device_found = None
+        # Hub_Output_Dongle.on_device_found = on_device_found
     except:
         raise DongleInitError("Hub Output dongle did not initialize properly")
 
     try:
         Hub_Input1_Dongle = adapter.Adapter(MAC_LIST[2])
+        # Hub_Input1_Dongle.on_device_found = null_device_found
+        Hub_Input1_Dongle.on_device_found = on_device_found
     except:
         raise DongleInitError("Hub Input1 dongle did not initialize properly")
 
     try:
         Hub_Input2_Dongle = adapter.Adapter(MAC_LIST[1])
+        Hub_Input2_Dongle.on_device_found = None
+        # Hub_Input2_Dongle.on_device_found = on_device_found
     except:
         raise DongleInitError("Hub Input2 dongle did not initialize properly")
 
     try:
         Pi_Bt_Dongle = adapter.Adapter(MAC_LIST[3])
+        Pi_Bt_Dongle.on_device_found = None
+        # Pi_Bt_Dongle.on_device_found = on_device_found
     except:
         raise DongleInitError("Pi Bluetooth dongle did not initialize properly")
 
@@ -79,6 +104,11 @@ def on_device_found(device: device.Device):
         FoundDevices.append(FoundDeviceClass(device.name, device.address))
     except:
         print('Error')
+
+
+def null_device_found(device: device.Device):
+    # Do nothing.
+    pass
 
 
 def find_Bob(found_list: FoundDeviceClass):
@@ -98,7 +128,7 @@ def recursive_introspection(bus, service, object_path):
     if match_result is not None:
         DBusStragglers.append(match_result)
 
-    # Does something I don't really understand.
+    # Goes through object looking for new objects.
     obj = bus.get_object(service, object_path)
     iface = dbus.Interface(obj, 'org.freedesktop.DBus.Introspectable')
     xml_string = iface.Introspect()
@@ -134,11 +164,7 @@ def list_dbus_stragglers(this_adapter: adapter.Adapter):
         print(s)
 
 
-#def pair_with_device(adapter_to_pair: adapter.Adapter, device_to_pair: device.Device, mac_address: str):
 def pair_with_device(adapter_to_pair: adapter.Adapter, mac_address: str):
-    # device.device adapter_device_connection
-    # device_to_pair.pair()
-    # adapter_to_pair.pairabletimeout = 20
     try:
         device_connection = device.Device(adapter_to_pair.address, mac_address)
         device_connection.pairabletimeout = 20
@@ -147,25 +173,34 @@ def pair_with_device(adapter_to_pair: adapter.Adapter, mac_address: str):
     except:
         print("Pairing Failed")
 
+
+def cycle_power(bt_dongle: adapter.Adapter):
+    bt_dongle.powered       = False
+    bt_dongle.discoverable  = False
+    time.sleep(1)
+    bt_dongle.powered       = True
+    bt_dongle.discoverable  = True
+
+
 def main():
     global FoundDevices
     global DBusStragglers
+
     # Initialize Dongles
     initdongles()
 
     # Power on
-    Hub_Input1_Dongle.powered = False
-    Hub_Input1_Dongle.discoverable = False
-    time.sleep(1)
-    Hub_Input1_Dongle.powered = True
-    Hub_Input1_Dongle.discoverable = True
-    print("Hub Input 1 Powered")
+    cycle_power(Hub_Input1_Dongle)
+    # Hub_Input1_Dongle.on_device_found = on_device_found
 
-    #Set callback function
-    Hub_Input1_Dongle.on_device_found = on_device_found
+    # Change BlueZ agent to NoInputNoOutput
+    bus = dbus.SystemBus()      # Get system bus object
+    bluez_obj = bus.get_object(BLUEZ_BUS_NAME, BLUEZ_OBJ_PATH)    # Get proxy object
+    agent_manager = dbus.Interface(bluez_obj, AGENT_MANAGER)      # Get agent manager
+    agent_manager.RegisterAgent(AGENT_PATH, DISPLAY_ONLY)   # NoInputNoOutput mode
 
     # Start scan
-    Hub_Input1_Dongle.nearby_discovery(timeout=30)
+    Hub_Input1_Dongle.nearby_discovery(timeout=15)
 
     # Look for device named Bob
     find_Bob(FoundDevices)
@@ -175,10 +210,20 @@ def main():
     find_dbus_stragglers(Hub_Input1_Dongle)
 
     # BOB : F4:65:A6:E5:F0:5F
-    pair_with_device(Hub_Input1_Dongle, "F4:65:A6:E5:F0:5F")
-    for straggler in DBusStragglers:
-        Hub_Input1_Dongle.remove_device(straggler)
+    print("trying to pair with bob")
+    try:
+        pair_with_device(Hub_Input1_Dongle, "F4:65:A6:E5:F0:5F")
+    except:
+        pass
 
+
+    for straggler in DBusStragglers:
+        try:
+            Hub_Input1_Dongle.remove_device(straggler)
+        except:
+            pass
+
+    time.sleep(5)
     print("Powering off")
     # Powering off dongle
     Hub_Input1_Dongle.powered = False
@@ -188,3 +233,6 @@ def main():
 if __name__ == '__main__':
     print(__name__)
     main()
+
+
+#https://mdipirro.github.io/c++/2019/09/18/bluetooth-agent-qt-part1.html
