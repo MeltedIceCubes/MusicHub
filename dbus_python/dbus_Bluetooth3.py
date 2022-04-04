@@ -25,9 +25,13 @@ import re
 #*****************************
 MAC_LIST = ["DC:A6:32:92:BF:F5",
             "00:1A:7D:DA:71:13",
-            "00:1A:7D:DA:71:13",
-            "00:1A:7D:DA:71:13"
+            "00:1A:7D:DA:71:14",
+            "00:1A:7D:DA:71:15"
             ]
+# raspberry pi
+# MusicHub : 1
+# MusicHub : 2
+# MusicHub : 3
 
 # Capabilities
 DISPLAY_ONLY         = "DisplayOnly"
@@ -47,7 +51,6 @@ Hub_Input1_Dongle = None
 Hub_Input2_Dongle = None
 Pi_Bt_Dongle      = None
 
-FoundDevices = list()
 FoundDevObjList = list()
 DBusStragglers = list()
 bus = None
@@ -73,56 +76,30 @@ def initdongles():
     global Hub_Input1_Dongle
     global Hub_Input2_Dongle
     global Pi_Bt_Dongle
-    try:
-        Hub_Output_Dongle = adapter.Adapter(MAC_LIST[0])
-        Hub_Output_Dongle.on_device_found = None
-        # Hub_Output_Dongle.on_device_found = on_device_found
-    except:
-        raise DongleInitError("Hub Output dongle did not initialize properly")
 
     try:
-        Hub_Input1_Dongle = adapter.Adapter(MAC_LIST[2])
+        Hub_Input1_Dongle = adapter.Adapter(MAC_LIST[1])
         # Hub_Input1_Dongle.on_device_found = null_device_found
         Hub_Input1_Dongle.on_device_found = on_device_found
     except:
         raise DongleInitError("Hub Input1 dongle did not initialize properly")
 
-    try:
-        Hub_Input2_Dongle = adapter.Adapter(MAC_LIST[1])
-        Hub_Input2_Dongle.on_device_found = None
-        # Hub_Input2_Dongle.on_device_found = on_device_found
-    except:
-        raise DongleInitError("Hub Input2 dongle did not initialize properly")
-
-    try:
-        Pi_Bt_Dongle = adapter.Adapter(MAC_LIST[3])
-        Pi_Bt_Dongle.on_device_found = None
-        # Pi_Bt_Dongle.on_device_found = on_device_found
-    except:
-        raise DongleInitError("Pi Bluetooth dongle did not initialize properly")
 
 
 #  Call-back when a device is found
 def on_device_found(device: device.Device):
-    global FoundDevices
     global FoundDevObjList
     try:
-        FoundDevObjList.append(device)
         print(device.address)
         print(device.name)
-        FoundDevices.append(FoundDeviceClass(device.name, device.address))
+        FoundDevObjList.append(device)
     except:
         print('Error')
 
 
-def null_device_found(device: device.Device):
-    # Do nothing.
-    pass
-
-
-def find_Bob(found_list: FoundDeviceClass):
+def find_Bob(found_list):
     for f in found_list:
-        if f.device_name == "Bob":
+        if f.name == "Bob":
             print("Found Bob")
         else:
             print("That wasn't Bob")
@@ -191,8 +168,66 @@ def cycle_power(bt_dongle: adapter.Adapter):
     bt_dongle.discoverable  = True
 
 
+def power_off(bt_dongle: adapter.Adapter):
+    print("Powering off")
+    bt_dongle.discoverable = False
+    bt_dongle.powered = False
+
+
+def find_device_in_objects(adapter, device_address):
+    global bus
+    path_prefix = adapter.path
+    manager = dbus.Interface(bus.get_object("org.bluez", "/"),"org.freedesktop.DBus.ObjectManager")
+    objects = manager.GetManagedObjects()
+    for path, ifaces in objects.items():
+        device = ifaces.get("org.bluez.Device1")
+        if device is None:
+            continue
+        if (device["Address"] == device_address and path.startswith(path_prefix)):
+            obj = bus.get_object(BLUEZ_BUS_NAME, path)
+            return dbus.Interface(obj, "org.bluez.Device1")
+    return None
+
+
+def pair_exception_handler(error):
+    error = str(error)
+    try:
+        if error in "orb.bluez.Error.InvalidArguments":
+            print("InvalidArguments")
+            return 1
+        elif error in "orb.bluez.Error.Failed":
+            print("Failed")
+            return 2
+        elif error in "orb.bluez.Error.Failed":
+            print("Failed")
+            return 3
+        elif error in "orb.bluez.Error.AlreadyExists":
+            print("AlreadyExists")
+            return 4
+        elif error in "orb.bluez.Error.AuthenticationCanceled":
+            print("AuthenticationCanceled")
+            return 5
+        elif error in "orb.bluez.Error.AuthenticationFailed":
+            print("AuthenticationFailed")
+            return 6
+        elif error in "orb.bluez.Error.AuthenticationRejected":
+            print("AuthenticationRejected")
+            return 7
+        elif error in "orb.bluez.Error.AuthenticationTimeout":
+            print("AuthenticationTimeout")
+            return 8
+        elif error in "orb.bluez.Error.AuthenticationTimeout":
+            print("AuthenticationTimeout")
+            return 9
+        else:
+            print("Some other error for this pair request")
+            return 10
+    except:
+        print("Pair Error parsing failed.")
+        return 11
+
+
 def main():
-    global FoundDevices
     global DBusStragglers
     global bus
 
@@ -201,7 +236,6 @@ def main():
 
     # Power on
     cycle_power(Hub_Input1_Dongle)
-    # Hub_Input1_Dongle.on_device_found = on_device_found
 
     # Change BlueZ agent to NoInputNoOutput
     bus = dbus.SystemBus()      # Get system bus object
@@ -213,20 +247,30 @@ def main():
     Hub_Input1_Dongle.nearby_discovery(timeout=15)
 
     # Look for device named Bob
-    find_Bob(FoundDevices)
+    # find_Bob(FoundDevObjList)
 
-    print("Clearing DBus device cache")
+    got_device = find_device_in_objects(Hub_Input1_Dongle,"F4:65:A6:E5:F0:5F")
+    if got_device:
+        try:
+            pairResultError = got_device.Pair()
+        except Exception as e:
+            pair_exception_handler(e)
+
+        if not pairResultError:
+            print("Device paired.")
+            connectResultError = got_device.Connect()
+            if not connectResultError:
+                print("Device Connected")
+    else:
+        print("Did not get device, we\'ll get them next time.")
+
+    sleep = 5
+    print("sleeping for %d seconds" % sleep)
+    time.sleep(sleep)
+
     # Clearing DBus device cache
+    print("Clearing DBus device cache")
     find_dbus_stragglers(Hub_Input1_Dongle)
-
-    # BOB : F4:65:A6:E5:F0:5F
-    # print("trying to pair with bob")
-    # try:
-    #     pair_with_device(Hub_Input1_Dongle, "F4:65:A6:E5:F0:5F")
-    # except:
-    #     pass
-
-    time.sleep(15)
 
     for straggler in DBusStragglers:
         try:
@@ -234,13 +278,8 @@ def main():
         except:
             pass
 
-
-    print("Powering off")
-    # Powering off dongle
-    Hub_Input1_Dongle.discoverable = False
-    Hub_Input1_Dongle.powered = False
-
-
+    # Power off dongle
+    power_off(Hub_Input1_Dongle)
 
 if __name__ == '__main__':
     print(__name__)
