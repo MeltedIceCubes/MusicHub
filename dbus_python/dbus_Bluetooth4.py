@@ -91,8 +91,6 @@ def init_Hub_Output():
         raise DongleInitError("Hub Output dongle did not initialize properly")
 
 
-
-
 #  Call-back when a device is found
 def on_device_found(device: device.Device):
     global FoundDevObjList
@@ -184,7 +182,7 @@ def power_off(bt_dongle: adapter.Adapter):
 def find_device_in_objects(adapter, device_address):
     global bus
     path_prefix = adapter.path
-    manager = dbus.Interface(bus.get_object("org.bluez", "/"),"org.freedesktop.DBus.ObjectManager")
+    manager = dbus.Interface(bus.get_object("org.bluez", "/"), "org.freedesktop.DBus.ObjectManager")
     objects = manager.GetManagedObjects()
     for path, ifaces in objects.items():
         device = ifaces.get("org.bluez.Device1")
@@ -223,61 +221,26 @@ def pair_and_connect(found_device):
     else:
         print("Did not get device, we\'ll get them next time.")
 
-
 def pair_exception_handler(error):
-    error = str(error)
-    try:
-        if error in "orb.bluez.Error.InvalidArguments":
-            print("InvalidArguments")
-            return True
-        elif error in "orb.bluez.Error.Failed":
-            print("Failed")
-            return True
-        elif error in "orb.bluez.Error.AlreadyExists":
-            # This error is actually okay since we know this device already.
-            print("AlreadyExists")
-            return None
-        elif error in "orb.bluez.Error.AuthenticationCanceled":
-            print("AuthenticationCanceled")
-            return True
-        elif error in "orb.bluez.Error.AuthenticationFailed":
-            print("AuthenticationFailed")
-            return True
-        elif error in "orb.bluez.Error.AuthenticationRejected":
-            print("AuthenticationRejected")
-            return True
-        elif error in "orb.bluez.Error.AuthenticationTimeout":
-            print("AuthenticationTimeout")
-            return True
-        elif error in "orb.bluez.Error.ConnectionAttemptFailed":
-            print("ConnectionAttemptFailed")
-            return True
-        else:
-            print("Some other error for this pair request")
-            return True
-    except:
-        print("Pair Error parsing failed.")
+    if "org.bluez.Error.AlreadyExists" in str(error):    # The only acceptable error
+        print("AlreadyExists")
+        return None
+    else:
+        print("Some other pairing error")
         return True
+    #https://git.kernel.org/pub/scm/bluetooth/bluez.git/tree/doc/device-api.txt
 
 
 def connect_exception_handler(error):
     error = str(error)
-    try:
-        if error in "org.bluez.Error.NotReady":
-            print("NotReady")
-            return True
-        elif error in "org.bluez.Error.Failed":
-            print("Failed")
-            return True
-        elif error in "org.bluez.Error.InProgress":
-            print("InProgress")
-            return True
-        elif error in "org.bluez.Error.AlreadyConnected":
-            print("AlreadyConnected")
-            return False
-    except:
-        print("Connect Error parsing failed")
+    if "org.bluez.Error.AlreadyConnected" in str(error):
+        print("AlreadyConnected")
+        return False
+    else:
+        print("Some other connecting error")
         return True
+    #https://git.kernel.org/pub/scm/bluetooth/bluez.git/tree/doc/device-api.txt
+
 
 
 def main():
@@ -302,7 +265,9 @@ def main():
     # Look for device named Bob
     # find_Bob(FoundDevObjList)
 
-    got_device = find_device_in_objects(Hub_Input1_Dongle, "F4:65:A6:E5:F0:5F")
+    # got_device = find_device_in_objects(Hub_Input1_Dongle, "F4:65:A6:E5:F0:5F")
+    got_device = find_device_in_objects(Hub_Input1_Dongle, "A4:6C:F1:53:C4:35")
+
     pair_and_connect(got_device)
 
     sleep = 5
@@ -313,11 +278,18 @@ def main():
     print("Clearing DBus device cache")
     find_dbus_stragglers(Hub_Input1_Dongle)
 
-    # for straggler in DBusStragglers:
-    #     try:
-    #         Hub_Input1_Dongle.remove_device(straggler)
-    #     except:
-    #         pass
+    for straggler in DBusStragglers:
+        try:
+            # # if "F4_65_A6_E5_F0_5F" in straggler:
+            # if "A4_6C_F1_53_C4_35" in straggler:
+            #     continue
+            # else:
+            #     Hub_Input1_Dongle.remove_device(straggler)
+
+            Hub_Input1_Dongle.remove_device(straggler)
+
+        except:
+            pass
 
     # Power off dongle
     # power_off(Hub_Input1_Dongle)
