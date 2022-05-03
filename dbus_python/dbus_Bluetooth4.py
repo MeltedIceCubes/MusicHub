@@ -68,7 +68,7 @@ class FoundDeviceClass:
 def set_trusted(path):
     global bus
     props = dbus.Interface(bus.get_object("org.bluez", path), "org.freedesktop.DBus.Properties")
-    props.Set("org.bkuez.Device1", "Trusted", True)
+    props.Set("org.bluez.Device1", "Trusted", True)
 
 
 def init_Hub_Input1():
@@ -265,8 +265,9 @@ def main():
     # Look for device named Bob
     # find_Bob(FoundDevObjList)
 
-    # got_device = find_device_in_objects(Hub_Input1_Dongle, "F4:65:A6:E5:F0:5F")
-    got_device = find_device_in_objects(Hub_Input1_Dongle, "A4:6C:F1:53:C4:35")
+    got_device = find_device_in_objects(Hub_Input1_Dongle, "F4:65:A6:E5:F0:5F")
+    # got_device = find_device_in_objects(Hub_Input1_Dongle, "A4:6C:F1:53:C4:35")
+    # got_device = find_device_in_objects(Hub_Input1_Dongle, "FC:66:CF:C3:4A:27")
 
     pair_and_connect(got_device)
 
@@ -280,19 +281,19 @@ def main():
 
     for straggler in DBusStragglers:
         try:
-            # # if "F4_65_A6_E5_F0_5F" in straggler:
+            if "F4_65_A6_E5_F0_5F" in straggler:
             # if "A4_6C_F1_53_C4_35" in straggler:
-            #     continue
-            # else:
-            #     Hub_Input1_Dongle.remove_device(straggler)
+                continue
+            else:
+                Hub_Input1_Dongle.remove_device(straggler)
 
-            Hub_Input1_Dongle.remove_device(straggler)
+            # Hub_Input1_Dongle.remove_device(straggler)
 
         except:
             pass
 
     # Power off dongle
-    # power_off(Hub_Input1_Dongle)
+    power_off(Hub_Input1_Dongle)
 
 if __name__ == '__main__':
     print(__name__)
