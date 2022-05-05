@@ -49,7 +49,7 @@ AGENT_MANAGER        = 'org.bluez.AgentManager1'
 # ********************
 #    Dongle Objects
 # --------------------
-# Hub_Output_Dongle = None
+Hub_Output_Dongle = None
 Hub_Input1_Dongle = None
 # Hub_Input2_Dongle = None
 # Pi_Bt_Dongle      = None
@@ -74,6 +74,8 @@ class HubDongle:
                                  # - deviceObj
                                  # - properties
         self.usable_devices = []
+        self.connected_obj = None
+        self.MediaControl = self.MediaControlClass()
         try:
             # Make adapter object with specified mac address.
             this_Dongle = adapter.Adapter(mac_address)
@@ -83,17 +85,28 @@ class HubDongle:
             self.Dongle = None
             raise DongleInitError("Dongle with MAC:%s could not initialize" % mac_address)
 
+    def set_to_null_device_found(self):
+        self.Dongle.on_device_found = self.null_device_found
+
+    def set_to_on_device_found(self):
+        self.Dongle.on_device_found = self.on_device_found
+
     def on_device_found(self, device: device.Device):
         """
         @info : Call back function when a device is found.
         @param : device object
         """
-        global FoundDevObjList
         try:
             print(device.address)
             print(device.name)
         except:
             print('Error')
+
+    def null_device_found(self, device: device.Device):
+        """
+        @info : Method for when device is not in use at the moment.
+        """
+        pass
 
     def cycle_power(self):
         """
@@ -159,6 +172,7 @@ class HubDongle:
                 return 0
 
             if not connectResultError:
+                self.connected_obj = found_device
                 print("Device Connected")
         else:
             print("Did not get device, we\'ll get them next time.")
@@ -214,6 +228,10 @@ class HubDongle:
 
         # Iterate through with a number to use so that you can select.
         # Note: Numbers start from 1 so we need to -1 from the actual input.
+        if len(self.usable_devices) == 0:
+            print("No usable devices.")
+            return False
+
         for i, device in enumerate(self.usable_devices, 1):
             print("%d : %s" % (i, device.properties["Name"]))
 
@@ -260,6 +278,46 @@ class HubDongle:
                 self.pair_and_connect(target.deviceObj)
             except:
                 pass
+
+    def get_media_controls(self):
+        if self.connected_obj:
+            try:
+                connected_device = self.connected_obj
+                obj = bus.get_object(BLUEZ_BUS_NAME, connected_device.object_path)
+                props_iface = dbus.Interface(obj, 'org.freedesktop.DBus.Properties')
+                properties = props_iface.GetAll('org.bluez.MediaControl1')
+                if 'Player' in properties: # If there is a player, we need to go deeper.
+                    obj = bus.get_object(BLUEZ_BUS_NAME, properties['Player'])
+                    props_iface = dbus.Interface(obj, 'org.freedesktop.DBus.Properties')
+                    properties = props_iface.GetAll('org.bluez.MediaPlayer1')
+                    control_or_player = 'org.bluez.MediaPlayer1'
+                else:
+                    control_or_player = 'org.bluez.MediaControl1'
+
+                device_itself = dbus.Interface(obj, control_or_player)
+            except:
+                pass
+            print("Got device?")
+
+
+
+    class MediaControlClass:
+        def __init__(self):
+            pass
+
+        def Play_Control(self):
+            pass
+
+        def Pause_Control(self):
+            pass
+
+        def VolUp_Control(self):
+            pass
+
+        def VolDn_Control(self):
+            pass
+
+
 
 
 class DongleInitError(Exception):
@@ -329,7 +387,7 @@ def find_dbus_stragglers():
 def list_dbus_stragglers():
     """
     @info : NON FUNCTIONAL. JUST VISUAL.
-            Print the DBus Stragglers. 
+            Print the DBus Stragglers.
     """
     global DBusStragglers   # List of strings
     print("\nListing Stragglers:")
@@ -356,7 +414,7 @@ def connect_exception_handler(error):
     """
     @info : Handles the exception ot any failed connect requests.
     @param : exceptions to device.Connect()
-    @note : more info here: 
+    @note : more info here:
             https://git.kernel.org/pub/scm/bluetooth/bluez.git/tree/doc/device-api.txt
     """
     error = str(error)
@@ -386,13 +444,16 @@ def remove_stragglers(white_list, this_dongle):
 
 
 def main():
-    global Hub_Input1_Dongle, bus
+    global Hub_Input1_Dongle, Hub_Output_Dongle, bus
 
     bus = dbus.SystemBus()                                              # Define global system bus to use
     bluez_obj       = bus.get_object(BLUEZ_BUS_NAME, BLUEZ_OBJ_PATH)    # Get proxy object
     agent_manager   = dbus.Interface(bluez_obj, AGENT_MANAGER)          # Get agent manager
     agent_manager.RegisterAgent(AGENT_PATH, NO_INPUT_NO_OUTPUT)         # Set agent as NoInputNoOutput mode
 
+    # ****************
+    # *** Dongle 1 ***
+    # ________________
     # Initialize Input 1 Dongle
     Hub_Input1_Dongle = HubDongle(MAC_LIST[1])
 
@@ -408,14 +469,56 @@ def main():
     # List pairable devices.
     Hub_Input1_Dongle.find_devices_in_adapter()
 
-    x = input()
+    # Get media controls
+    Hub_Input1_Dongle.get_media_controls()
+
+    # Discoverable off
+    Hub_Input1_Dongle.discoverable_off()
+
+    x1 = input()
+
+    # Disable on_device_found so that the other adapter can use it.
+    Hub_Input1_Dongle.set_to_null_device_found()
+
+    # ****************
+    # *** Dongle 2 ***
+    # ________________
+
+    # Initialize Output Dongle
+    Hub_Output_Dongle = HubDongle(MAC_LIST[3])
+
+    # Power on
+    Hub_Output_Dongle.power_on()
+
+    # Discoverable on
+    Hub_Output_Dongle.discoverable_on()
+
+    # Start scan
+    Hub_Output_Dongle.Dongle.nearby_discovery(timeout=15)
+
+    # List pairable devices.
+    Hub_Output_Dongle.find_devices_in_adapter()
+
+    # Get media controls
+    Hub_Output_Dongle.get_media_controls()
+
+    x2 = input()
+
+    # Disable on_device_found so that the other adapter can use it.
+    Hub_Output_Dongle.set_to_null_device_found()
+
+    # ***************************
+    # ***  Clean up devices   ***
+    # ___________________________
 
     find_dbus_stragglers()      # List DBus cache stragglers
 
-    # Hub_Input1_white_list = ["F4_65_A6_E5_F0_5F", "A4_6C_F1_53_C4_35"]
-    Hub_Input1_white_list = []
+    # device_white_list = ["F4_65_A6_E5_F0_5F", "A4_6C_F1_53_C4_35"]
+    device_white_list = []
+
     # Remove stragglers except the ones that are White-Listed
-    remove_stragglers(Hub_Input1_white_list, Hub_Input1_Dongle.Dongle)
+    remove_stragglers(device_white_list, Hub_Input1_Dongle.Dongle)
+    remove_stragglers(device_white_list, Hub_Output_Dongle.Dongle)
 
     print("End of line")
 
