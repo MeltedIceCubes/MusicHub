@@ -133,6 +133,36 @@ class HubDongle:
         except:
             pass    # means it was on or some other issue.
 
+    def pair_and_connect(self, found_device):
+        """
+        @info : Pair and Connect to a found device.
+        @param : device object
+        """
+        if found_device:
+            pairResultError = True
+            try:
+                pairResultError = found_device.Pair()
+            except Exception as e:
+                pairResultError = pair_exception_handler(e)
+            if pairResultError:
+                print("Pairing Failed.")
+                return 0
+
+            print("Device paired.")
+            connectResultError = True
+            try:
+                connectResultError = found_device.Connect()
+            except Exception as ee:
+                connectResultError = connect_exception_handler(ee)
+            if connectResultError:
+                print("Connecting Failed.")
+                return 0
+
+            if not connectResultError:
+                print("Device Connected")
+        else:
+            print("Did not get device, we\'ll get them next time.")
+
     def find_device_in_objects(self, device_address):
         """
         @info : Find device object with the given mac address.
@@ -172,17 +202,64 @@ class HubDongle:
                 device_itself = dbus.Interface(obj, "org.bluez.Device1")
                 device_and_properties = DeviceAndProperties(device_itself, properties)
                 self.device_list.append(device_and_properties)
-        return device_list
-
-    def print_device_list(self):
-        pattern = r'\/org\/bluez\/hci\d\/dev_([\d\w]{2})_([\d\w]{2})_([\d\w]{2})_([\d\w]{2})_([\d\w]{2})_([\d\w]{2})'
+        
+        # Iterate through devices looking for device with a name attribute.
         for device in self.device_list:
             try:
-                print(device.properties['Name'])
+                if "Name" in device.properties:
+                    # Add to list if it has a "Name" attribute
+                    self.usable_devices.append(device)
             except:
                 print("Could not print name of this device")
 
+        # Iterate through with a number to use so that you can select.
+        # Note: Numbers start from 1 so we need to -1 from the actual input.
+        for i, device in enumerate(self.usable_devices, 1):
+            print("%d : %s" % (i, device.properties["Name"]))
 
+        # Get selection from user. This can be replaced with something else later.
+        selection = int(input())
+        if selection > i or selection < 1:
+            print("Invalid Selection")
+            return False
+        else:
+            try:
+                target = self.usable_devices[selection - 1]
+                self.pair_and_connect(target.deviceObj)
+            except:
+                pass
+
+    def list_usable_devices(self):
+        """
+        @info : Look through the device_list and make a list of the responsive objects.
+                Adds usable device objects to
+        @return :
+        """
+        # Iterate through devices looking for device with a name attribute.
+        for device in self.device_list:
+            try:
+                if "Name" in device.properties:
+                    #Add to list if it has a "Name" attribute
+                    self.usable_devices.append(device)
+            except:
+                print("Could not print name of this device")
+
+        # Iterate through with a number to use so that you can select.
+        # Note: Numbers start from 1 so we need to -1 from the actual input.
+        for i, device in enumerate(self.usable_devices, 1):
+            print("%d : %s" %(i, device.properties["Name"]))
+
+        # Get selection from user. This can be replaced with something else later.
+        selection = int(input())
+        if selection > i or selection <1:
+            print("Invalid Selection")
+            return False
+        else:
+            try:
+                target = self.usable_devices[selection-1]
+                self.pair_and_connect(target.deviceObj)
+            except:
+                pass
 
 
 class DongleInitError(Exception):
@@ -194,20 +271,6 @@ class StragglerObj():
     def __init__(self, obj_path:str):
         self.path   = obj_path
         self.Remove = None
-
-
-# def on_device_found(device: device.Device):
-#     """
-#     @info : Call back function when a device is found.
-#     @param : device object
-#     """
-#     global FoundDevObjList
-#     try:
-#         print(device.address)
-#         print(device.name)
-#         FoundDevObjList.append(device)
-#     except:
-#         print('Error')
 
 
 def get_device_mac(path):
@@ -272,37 +335,6 @@ def list_dbus_stragglers():
     print("\nListing Stragglers:")
     for s in DBusStragglers:
         print(s.path)
-
-
-def pair_and_connect(found_device):
-    """
-    @info : Pair and Connect to a found device.
-    @param : device object
-    """
-    if found_device:
-        pairResultError = True
-        try:
-            pairResultError = found_device.Pair()
-        except Exception as e:
-            pairResultError = pair_exception_handler(e)
-        if pairResultError:
-            print("Pairing Failed.")
-            return 0
-
-        print("Device paired.")
-        connectResultError = True
-        try:
-            connectResultError = found_device.Connect()
-        except Exception as ee:
-            connectResultError = connect_exception_handler(ee)
-        if connectResultError:
-            print("Connecting Failed.")
-            return 0
-
-        if not connectResultError:
-            print("Device Connected")
-    else:
-        print("Did not get device, we\'ll get them next time.")
 
 
 def pair_exception_handler(error):
@@ -372,18 +404,16 @@ def main():
     # Start scan
     Hub_Input1_Dongle.Dongle.nearby_discovery(timeout=15)
 
-    # List devices able to be paired to.
+    # List pairable devices.
     Hub_Input1_Dongle.find_devices_in_adapter()
 
-    #Print out devices.
-    Hub_Input1_Dongle.print_device_list()
-
-
+    x = input()
 
     # List DBus cache stragglers
     find_dbus_stragglers()
 
-    Hub_Input1_white_list = ["F4_65_A6_E5_F0_5F", "A4_6C_F1_53_C4_35"]
+    # Hub_Input1_white_list = ["F4_65_A6_E5_F0_5F", "A4_6C_F1_53_C4_35"]
+    Hub_Input1_white_list = []
     # Remove stragglers except the ones that are White-Listed
     remove_stragglers(Hub_Input1_white_list, Hub_Input1_Dongle.Dongle)
 
