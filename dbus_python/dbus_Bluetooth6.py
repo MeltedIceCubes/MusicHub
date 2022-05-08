@@ -524,6 +524,7 @@ def main():
 
     # Power off
     Hub_Input1_Dongle.power_off()
+    Hub_Output_Dongle.power_off()
 
 
 if __name__ == '__main__':
