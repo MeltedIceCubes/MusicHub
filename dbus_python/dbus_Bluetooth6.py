@@ -15,6 +15,7 @@ import time
 import dbus
 from xml.etree import ElementTree
 import re
+import sys
 
 # *****************************
 #   Define Global Variables
@@ -62,6 +63,7 @@ class DeviceAndProperties:
     def __init__(self, deviceObj, properties):
         self.deviceObj = deviceObj
         self.properties = properties
+
 
 class HubDongle:
     def __init__(self, mac_address):
@@ -247,6 +249,8 @@ class HubDongle:
             except:
                 pass
 
+
+
     def list_usable_devices(self):
         """
         @info : Look through the device_list and make a list of the responsive objects.
@@ -281,29 +285,99 @@ class HubDongle:
 
     def get_media_controls(self):
         if self.connected_obj:
-            try:
-                connected_device = self.connected_obj
-                obj = bus.get_object(BLUEZ_BUS_NAME, connected_device.object_path)
-                props_iface = dbus.Interface(obj, 'org.freedesktop.DBus.Properties')
-                properties = props_iface.GetAll('org.bluez.MediaControl1')
-                if 'Player' in properties: # If there is a player, we need to go deeper.
-                    obj = bus.get_object(BLUEZ_BUS_NAME, properties['Player'])
-                    props_iface = dbus.Interface(obj, 'org.freedesktop.DBus.Properties')
-                    properties = props_iface.GetAll('org.bluez.MediaPlayer1')
-                    control_or_player = 'org.bluez.MediaPlayer1'
-                else:
-                    control_or_player = 'org.bluez.MediaControl1'
+            # Get MediaController first.
+            self.getMediaControl()
 
-                device_itself = dbus.Interface(obj, control_or_player)
-            except:
-                pass
-            print("Got device?")
+            # Get MediaTransport. (for adjusting volume)
+            self.getMediaTransport()
+
+    def getMediaControl(self):
+        try:
+            connected_device = self.connected_obj
+            ctrl_obj = bus.get_object(BLUEZ_BUS_NAME, connected_device.object_path)
+            ctrl_props_iface = dbus.Interface(ctrl_obj, 'org.freedesktop.DBus.Properties')
+            ctrl_properties = ctrl_props_iface.GetAll('org.bluez.MediaControl1')
+            self.MediaControl.MediaController = dbus.Interface(ctrl_obj, 'org.bluez.MediaControl1')
+            print("Got Controller obj")
+        except:
+            print("No Controller obj available")
+            time.sleep(0.1)
+        try:
+            if 'Player' in ctrl_properties:  # If there is a player, we need to go deeper.
+                play_obj = bus.get_object(BLUEZ_BUS_NAME, ctrl_properties['Player'])
+                play_props_iface = dbus.Interface(play_obj, 'org.freedesktop.DBus.Properties')
+                play_properties = play_props_iface.GetAll('org.bluez.MediaPlayer1')
+                self.MediaControl.MediaPlayer = dbus.Interface(play_obj, 'org.bluez.MediaPlayer1')
+                print("Got Player obj")
+        except:
+            print("No Player obj available")
+        finally:
+            if self.MediaControl.MediaPlayer is None:
+                print("No MediaPlayer was found")
 
 
+
+    def getMediaTransport(self):
+        """https://scribles.net/controlling-bluetooth-audio-on-raspberry-pi/"""
+        obj = bus.get_object('org.bluez', "/")
+        mgr = dbus.Interface(obj, 'org.freedesktop.DBus.ObjectManager')
+        try:
+            for path, ifaces in mgr.GetManagedObjects().items():
+                if (self.connected_obj.object_path in path ) and \
+                        ('org.bluez.MediaTransport1' in ifaces):
+                    self.MediaControl.MediaTransporter = dbus.Interface(
+                        bus.get_object('org.bluez', path),
+                        'org.freedesktop.DBus.Properties')
+                    print("Got Transporter obj")
+                    continue
+        except:
+            print("No Transporter obj available")
+        finally:
+            if self.MediaControl.MediaTransporter is None:
+                print("No Transporter obj was found")
 
     class MediaControlClass:
         def __init__(self):
-            pass
+            self.MediaController = None
+            self.MediaPlayer     = None
+            self.MediaTransporter= None
+
+        def use_media_controls(self):
+            Controller_Message = ["Q:".
+                                  "  1: FastForward",
+                                  "  2: Next",
+                                  "  3: Pause",
+                                  "  4: Play",
+                                  "  5: Previous",
+                                  "  6: Rewind",
+                                  "  7: Stop",
+                                  "  8: Volume Down",
+                                  "  9: Volume Up"]
+            Player_Message = ["W",
+                              "  1: FastForward",
+                              "  2: Hold",
+                              "  3: Next",
+                              "  4: Pause",
+                              "  5: Play",
+                              "  6: Press",
+                              "  7: Previous",
+                              "  8: Release",
+                              "  9: Rewind",
+                              "  0: Stop"]
+            Transporter_Message = ["E",
+                                   "  1: Get Volume"]
+            if self.MediaController is not None:
+                for c_message in Controller_Message:
+                    print(c_message)
+            if self.MediaPlayer is not None:
+                for p_message in Player_Message:
+                    print(p_message)
+            if self.MediaTransporter is not None:
+                for t_message in Transporter_Message:
+                    print(t_message)
+                volume = self.MediaTransporter.Get('org.bluez.MediaTransport1', 'Volume')
+                print(volume)
+
 
         def Play_Control(self):
             pass
@@ -443,6 +517,27 @@ def remove_stragglers(white_list, this_dongle):
             pass
 
 
+def shutdown(whiteList, dongle_1 = None, dongle_2 = None, dongle_3 = None):
+    dongle_list = []
+    # Make dongle list
+    if dongle_1:
+        dongle_list.append(dongle_1)
+    if dongle_2:
+        dongle_list.append(dongle_2)
+    if dongle_3:
+        dongle_list.append(dongle_3)
+
+
+    find_dbus_stragglers()  # List DBus cache stragglers
+
+    for dongle in dongle_list:
+        # Remove stragglers except the ones that are White-Listed
+        remove_stragglers(whiteList, dongle.Dongle)
+        
+        # Power off
+        dongle.power_off()
+
+
 def main():
     global Hub_Input1_Dongle, Hub_Output_Dongle, bus
 
@@ -472,10 +567,14 @@ def main():
     # Get media controls
     Hub_Input1_Dongle.get_media_controls()
 
+    Hub_Input1_Dongle.MediaControl.use_media_controls()
     # Discoverable off
     Hub_Input1_Dongle.discoverable_off()
 
-    x1 = input()
+    x1 = int(input("Type 0 to exit :"))
+    if x1 == 0:
+        shutdown([], dongle_1= Hub_Input1_Dongle, dongle_2=Hub_Output_Dongle)
+        sys.exit()
 
     # Disable on_device_found so that the other adapter can use it.
     Hub_Input1_Dongle.set_to_null_device_found()
@@ -510,21 +609,9 @@ def main():
     # ***************************
     # ***  Clean up devices   ***
     # ___________________________
-
-    find_dbus_stragglers()      # List DBus cache stragglers
-
-    # device_white_list = ["F4_65_A6_E5_F0_5F", "A4_6C_F1_53_C4_35"]
-    device_white_list = []
-
-    # Remove stragglers except the ones that are White-Listed
-    remove_stragglers(device_white_list, Hub_Input1_Dongle.Dongle)
-    remove_stragglers(device_white_list, Hub_Output_Dongle.Dongle)
-
+    shutdown([], dongle_1= Hub_Input1_Dongle, dongle_2=Hub_Output_Dongle)
     print("End of line")
 
-    # Power off
-    Hub_Input1_Dongle.power_off()
-    Hub_Output_Dongle.power_off()
 
 
 if __name__ == '__main__':
