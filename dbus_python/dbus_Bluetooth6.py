@@ -286,10 +286,15 @@ class HubDongle:
     def get_media_controls(self):
         if self.connected_obj:
             # Get MediaController first.
-            self.getMediaControl()
+            for i in range(2):
+                time.sleep(1)
+                self.getMediaControl()
+                if (self.MediaControl.MediaController is not None) and (self.MediaControl.MediaPlayer is not None):
+                    break
 
             # Get MediaTransport. (for adjusting volume)
             self.getMediaTransport()
+            print("Finished fetching media controls")
 
     def getMediaControl(self):
         try:
@@ -343,7 +348,10 @@ class HubDongle:
             self.MediaTransporter= None
 
         def use_media_controls(self):
-            Controller_Message = ["Q:".
+            if self.MediaController is None and self.MediaPlayer is None and self.MediaTransporter is None:
+                return
+
+            Controller_Message = ["Q:",
                                   "  1: FastForward",
                                   "  2: Next",
                                   "  3: Pause",
@@ -365,7 +373,9 @@ class HubDongle:
                               "  9: Rewind",
                               "  0: Stop"]
             Transporter_Message = ["E",
-                                   "  1: Get Volume"]
+                                   "  1: Get Volume",
+                                   "  2: Volume Down",
+                                   "  3: Volume Up"]
             if self.MediaController is not None:
                 for c_message in Controller_Message:
                     print(c_message)
@@ -375,10 +385,97 @@ class HubDongle:
             if self.MediaTransporter is not None:
                 for t_message in Transporter_Message:
                     print(t_message)
+            x = "X"
+            while True:
+                x = input()
+                if x == "Z":
+                    break
+                elif len(x) != 2:
+                    print("Command should be 2 characters. Try again")
+                    continue
+                else:
+                    if x[0] == "q" or x[0] == "Q":  # Control Media Controller
+                        if x[1] == "1":
+                            self.MediaController.FastForward()
+                        elif x[1] == "2":
+                            self.MediaController.Next()
+                        elif x[1] == "3":
+                            self.MediaController.Pause()
+                        elif x[1] == "4":
+                            self.MediaController.Play()
+                        elif x[1] == "5":
+                            self.MediaController.Previous()
+                        elif x[1] == "6":
+                            self.MediaController.Rewind()
+                        elif x[1] == "7":
+                            self.MediaController.Stop()
+                        elif x[1] == "8":
+                            self.MediaController.VolumeDown() # Doesn't work
+                        elif x[1] == "9":
+                            self.MediaController.VolumeUp() # Doesn't work
+                    if x[0] == "w" or x[0] == "W":
+                        if x[1] == "1":
+                            self.MediaPlayer.FastForward()
+                        elif x[1] == "2":
+                            self.MediaPlayer.Hold()
+                        elif x[1] == "3":
+                            self.MediaPlayer.Next()
+                        elif x[1] == "4":
+                            self.MediaPlayer.Pause()
+                        elif x[1] == "5":
+                            self.MediaPlayer.Play()
+                        elif x[1] == "6":
+                            self.MediaPlayer.Press()
+                        elif x[1] == "7":
+                            self.MediaPlayer.Previous()
+                        elif x[1] == "8":
+                            self.MediaPlayer.Release()
+                        elif x[1] == "9":
+                            self.MediaPlayer.Rewind()
+                        elif x[1] == "0":
+                            self.MediaPlayer.Stop()
+                    if x[0] == "e" or x[0] == "E":
+                        if x[1] == "1": # Get Volume
+                            volume = self.GetVolume()
+                            print(volume)
+                        elif x[1] == "2": # Volume Down
+                            volume = self.VolumeDown()
+                            print(volume)
+                        elif x[1] == "3": # Volume Up
+                            volume = self.VolumeUp()
+                            print(volume)
+
+        def GetVolume(self):
+            try:
                 volume = self.MediaTransporter.Get('org.bluez.MediaTransport1', 'Volume')
-                print(volume)
+            except:
+                volume = None
+            finally:
+                return volume
 
+        def VolumeUp(self):
+            try:
+                volume = self.MediaTransporter.Get('org.bluez.MediaTransport1', 'Volume')
+                volume = volume + 10
+                if volume > 127:
+                    volume = 127
+                self.MediaTransporter.Set('org.bluez.MediaTransport1', 'Volume', dbus.UInt16(volume))
+            except:
+                volume = None
+            finally:
+                return volume
 
+        def VolumeDown(self):
+            try:
+                volume = self.MediaTransporter.Get('org.bluez.MediaTransport1', 'Volume')
+                volume = volume - 10
+                if volume < 0:
+                    volume = 0
+                self.MediaTransporter.Set('org.bluez.MediaTransport1', 'Volume', dbus.UInt16(volume))
+            except: 
+                volume = None
+            finally: 
+                return volume
         def Play_Control(self):
             pass
 
@@ -550,16 +647,19 @@ def main():
     # *** Dongle 1 ***
     # ________________
     # Initialize Input 1 Dongle
+
     Hub_Input1_Dongle = HubDongle(MAC_LIST[1])
 
-    # Power on
-    Hub_Input1_Dongle.power_on()
+    x1 = int(input("Type 1 to start scan : "))
+    if x1 == 1:
+        # Power on
+        Hub_Input1_Dongle.power_on()
 
-    # Discoverable on
-    Hub_Input1_Dongle.discoverable_on()
+        # Discoverable on
+        Hub_Input1_Dongle.discoverable_on()
 
-    # Start scan
-    Hub_Input1_Dongle.Dongle.nearby_discovery(timeout=15)
+        # Start scan
+        Hub_Input1_Dongle.Dongle.nearby_discovery(timeout=15)
 
     # List pairable devices.
     Hub_Input1_Dongle.find_devices_in_adapter()
