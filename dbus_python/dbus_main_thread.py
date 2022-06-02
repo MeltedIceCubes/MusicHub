@@ -1,9 +1,16 @@
 import dbus_Bluetooth7 as bluez_dbus
+import menu_list as menu
 import time
 import threading
 
 BREAK_MAIN_LOOP = False
 START_TIME = 0
+Active_threads = []
+
+class SelectionMap:
+    def __init__(self,menu_obj:menu.Menu_listing, function_list:list):
+        self.MenuMethods = menu_obj
+        self.MenuFunctions = function_list
 
 class process:
     def __init__(self, sleep_time, name):
@@ -17,47 +24,70 @@ class process:
 
 class UI_thread:
     def __init__(self):
-        print("Press Z at any time to quit")
-        BREAK_MAIN_LOOP = False
-        self._observers = []
+        print("Press Z at any time to quit\n\n")
+        self.observers = []
+        self.MenuIfc = None
+
     def waitForInput(self):
-        global BREAK_MAIN_LOOP
-        x = input()
-
-        for callback in self._observers:
-            print('announcing change')
-            callback()
-
-        if x == "Z":
-            print("Stopped at : %d" %(time.time() * 1000))
-            BREAK_MAIN_LOOP = True
+        while True:
+            self.MenuIfc.MenuMethods.PrintMenu()
+            x = input()
+            selection = self.MenuIfc.MenuMethods.ParseSelection(x)
+            menu_choice = self.MenuIfc.MenuFunctions
+            for i in selection:
+                menu_choice = menu_choice[i]
+            menu_choice()
 
 
-def SomethingHappened():
-    print("Something happened")
+            # TODO: Make this accept the same dimension of inputs as the parser
+
+
+            # for callback in self.observers:
+            #     callback()
+
+            if x == "Z":
+                print("Stopped at : %d" %(time.time() * 1000))
+                break
+
+UI_LOOP = UI_thread()  # global class
+
+
+def eventA():
+    print("A event")
+def eventA1():
+    print("A1 event")
+def eventA2():
+    print("A2 event")
+def eventB():
+    print("B event")
+def eventB1():
+    print("B1 event")
+def eventB2():
+    print("B2 event")
+def eventReset():
+    print("Reset events")
+
+
+Event_message = ['Select Event : ',
+                 'A : ',
+                 '     1',
+                 '     2',
+                 'B : ',
+                 '     1',
+                 '     2']
+Event_selection = [['A','B'],['1','2']]
 
 if __name__ == '__main__':
     print("Main Thread : Start")
+    event_menu = menu.Menu_listing(Event_message,Event_selection)
+    event_menu_obj = SelectionMap(event_menu, [[eventA1,eventA2], [eventB1, eventB2]])
 
-    ui_func = UI_thread()
-    ui_func._observers.append(SomethingHappened)
-    func1 = process(0.3, "f1")
-    ui_thread = threading.Thread(target=ui_func.waitForInput)
+    UI_LOOP.MenuIfc = event_menu_obj
+
+    # UI_LOOP.observers.append()  # Register observers
+    ui_thread = threading.Thread(target=UI_LOOP.waitForInput)
     ui_thread.start()
 
-    while BREAK_MAIN_LOOP != True:
-        thread1 = threading.Thread(target = func1.timer)
-        thread1.start()
-        # print(ui_thread.is_alive)
-        if ui_thread.is_alive() == False:
-            print("thread died")
-            ui_thread = threading.Thread(target=ui_func.waitForInput)
-            ui_thread.start()
-        thread1.join()
-
-    print("Main Thread : End")
-
-
-
-
+    ui_thread.join()
+    print("\n\nMain Thread : End")
     # UI_thread()
