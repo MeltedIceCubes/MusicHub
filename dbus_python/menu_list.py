@@ -36,7 +36,11 @@ class Menu_listing:
         """this will return the index of the selection"""
         menu_selection_index = []
         for i in range(len(selection)):
-            menu_selection_index.append(self.options[i].index(selection[i]))
+            try:
+                menu_selection_index.append(self.options[i].index(selection[i]))
+            except:
+                return None
+
         print(menu_selection_index)
         return menu_selection_index
 

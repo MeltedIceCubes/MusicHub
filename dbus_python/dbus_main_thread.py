@@ -3,9 +3,7 @@ import menu_list as menu
 import time
 import threading
 
-BREAK_MAIN_LOOP = False
-START_TIME = 0
-Active_threads = []
+
 
 class SelectionMap:
     def __init__(self,menu_obj:menu.Menu_listing, function_list:list):
@@ -31,42 +29,63 @@ class UI_thread:
     def waitForInput(self):
         while True:
             self.MenuIfc.MenuMethods.PrintMenu()
+
             x = input()
-            selection = self.MenuIfc.MenuMethods.ParseSelection(x)
-            menu_choice = self.MenuIfc.MenuFunctions
-            for i in selection:
-                menu_choice = menu_choice[i]
-            menu_choice()
-
-
-            # TODO: Make this accept the same dimension of inputs as the parser
-
-
-            # for callback in self.observers:
-            #     callback()
-
             if x == "Z":
                 print("Stopped at : %d" %(time.time() * 1000))
                 break
 
-UI_LOOP = UI_thread()  # global class
+            menu_choice = self.MenuIfc.MenuFunctions    #load up the menu choice methods
+            selection = self.MenuIfc.MenuMethods.ParseSelection(x) #
+            if not selection:
+                print("[%s] is not a valid input.\nTry again" %x)
+                continue
+            for i in selection:
+                menu_choice = menu_choice[i]
+            selection_exe    = menu_choice()
+            selection_thread = threading.Thread(target=selection_exe.run)
+            selection_thread.start()
+            if selection_exe.hold == True:
+                selection_thread.join()
 
 
-def eventA():
-    print("A event")
-def eventA1():
-    print("A1 event")
-def eventA2():
-    print("A2 event")
-def eventB():
-    print("B event")
-def eventB1():
-    print("B1 event")
-def eventB2():
-    print("B2 event")
+
+class eventA1:
+    def __init__(self):
+        self.hold = True
+    def run(self):
+        print("A1 event")
+        for i in range(3, 0, -1):
+            print(i)
+            time.sleep(1)
+class eventA2:
+    def __init__(self):
+        self.hold = False
+    def run(self):
+        print("A2 event")
+        for i in range(3, 0, -1):
+            print(i)
+            time.sleep(1)
+
+class eventB1:
+    def __init__(self):
+        self.hold = False
+    def run(self):
+        print("B1 event")
+        for i in range(3, 0, -1):
+            print(i)
+            time.sleep(1)
+class eventB2:
+    def __init__(self):
+        self.hold = False
+    def run(self):
+        print("B2 event")
+        for i in range(3, 0, -1):
+            print(i)
+            time.sleep(1)
+
 def eventReset():
     print("Reset events")
-
 
 Event_message = ['Select Event : ',
                  'A : ',
@@ -76,6 +95,16 @@ Event_message = ['Select Event : ',
                  '     1',
                  '     2']
 Event_selection = [['A','B'],['1','2']]
+
+
+
+
+BREAK_MAIN_LOOP = False
+START_TIME = 0
+Active_threads = []
+UI_LOOP = UI_thread()  # global  object
+
+
 
 if __name__ == '__main__':
     print("Main Thread : Start")
