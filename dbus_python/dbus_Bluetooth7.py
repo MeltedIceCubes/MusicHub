@@ -659,6 +659,8 @@ def main():
 
         # Start scan
         Hub_Input1_Dongle.Dongle.nearby_discovery(timeout=15)
+        #I think to stop it, it would be :
+        #       Hub_Input1_Dongle.Dongle.stop_discovery()
 
     # List pairable devices.
     Hub_Input1_Dongle.find_devices_in_adapter()
