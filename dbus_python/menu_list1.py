@@ -1,5 +1,5 @@
 import time
-
+import threading
 # ********************************************
 #   ***      Message and selections      ***
 # ____________________________________________
@@ -52,61 +52,68 @@ def ParseSelection(menu_obj: Menu_listing, selection) -> list:
         return None
 
 class eventA1:
-    def __init__(self, priority = 5):
+    def __init__(self, priority = 1):
         self.hold = True
+        self.Priority = priority
+        self.EventName = "A1"
+    def run(self,lock):
+        global CANCEL_FLAG
+        lock.acquire()
+        print("A1 event")
+        for i in range(5, 0, -1):
+            if CANCEL_FLAG == True:
+                CANCEL_FLAG = False
+                break
+            print(i)
+            time.sleep(1)
+        lock.release()
+
+class eventA2:
+    def __init__(self, priority = 2):
+        self.hold = False
         self.Priority = priority
     def run(self):
         global CANCEL_FLAG
-        print("A1 event")
-        for i in range(10, 0, -1):
+        print("A2 event")
+        for i in range(5, 0, -1):
+            if CANCEL_FLAG == True:
+                CANCEL_FLAG = False
+                break
+            print(i)
+            time.sleep(1)
+        print("Finished : A2 event")
+
+class eventB1:
+    def __init__(self, priority = 3):
+        self.hold = False
+        self.Priority = priority
+    def run(self):
+        global CANCEL_FLAG
+        print("B1 event")
+        for i in range(5, 0, -1):
             if CANCEL_FLAG == True:
                 CANCEL_FLAG = False
                 break
             print(i)
             time.sleep(1)
 
-class eventA2:
-    def __init__(self, priority = 5):
-        self.hold = False
-        self.Priority = priority
-    def run(self):
-        global CANCEL_FLAG
-        print("A2 event")
-        for i in range(3, 0, -1):
-            if CANCEL_FLAG == True:
-                CANCEL_FLAG = False
-                break
-            time.sleep(1)
-        print("Finished : A2 event")
-
-class eventB1:
-    def __init__(self, priority = 5):
-        self.hold = False
-        self.Priority = priority
-    def run(self):
-        global CANCEL_FLAG
-        print("B1 event")
-        for i in range(3, 0, -1):
-            if CANCEL_FLAG == True:
-                CANCEL_FLAG = False
-                break
-            time.sleep(1)
-
         print("Finished : B1 event")
 
 class eventB2:
-    def __init__(self, priority = 5 ):
+    def __init__(self, priority = 4 ):
         self.hold = False
         self.Priority = priority
     def run(self):
         global CANCEL_FLAG
         print("B2 event")
-        for i in range(3, 0, -1):
+        for i in range(5, 0, -1):
             if CANCEL_FLAG == True:
                 CANCEL_FLAG = False
                 break
+            print(i)
             time.sleep(1)
         print("Finished : B2 event" )
 
+# class Cancel_Event
 if __name__ == "__main__":
     x = eventA1().run()

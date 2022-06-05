@@ -8,10 +8,36 @@ import threading
 import time
 # from menu_list1 import Menu_listing, ParseSelection, eventA1, eventA2, eventB1,eventB2,CANCEL_FLAG
 import menu_list1 as Menu
+
+EXIT_PROGRAM = False
+Executer_Lock = threading.Lock()
+# Executer_Lock = threading.Lock()
+
+
+class Event_Item:
+    def __init__(self,passed_method, priority = 5, passed_args = None):
+        self.Priority = priority
+        #z = sorted(x,key= lambda gg : gg.priority)
+        self.Event = passed_method
+        self.args = passed_args
+
+
 class Executer_Class:
     def __init__(self):
         self._function_to_run = None
         self._EventQueue = []
+        self.curr_event = None
+
+    def Execution_Loop(self):
+        global EXIT_PROGRAM
+        while True:  # Start Loop
+            if EXIT_PROGRAM == True: # Check for exit condition
+                break
+
+            if not Executer_Lock.locked(): # Check that other function is not running.
+                self.curr_event = self.RunNextInQueue() # Pick and run the next in the event queue
+            time.sleep(0.2) # Delete for real implementation
+
     @property
     def function_to_run(self):
         return self._function_to_run
@@ -28,16 +54,26 @@ class Executer_Class:
     def EventQueue(self, val):
         self._EventQueue = val
     def append(self,val):
-        self.EventQueue = self.EventQueue + [val]
+        val_func = val()
+        val_func_thread = threading.Thread(target = val_func.run,args = (Executer_Lock,))
+        val_event_item = Event_Item(val_func_thread,priority=2)
+        self.EventQueue = self.EventQueue + [val_event_item]
         return self.EventQueue
-    def extend(self,val):
-        return self.EventQueue.extend(val)
 
+    def RunNextInQueue(self):
+        if len(self.EventQueue) > 0:
+            queued = self.EventQueue.pop(0)
+            # queued = self.EventQueue[0]
+            queued.Event.start()
+            return queued.Event
+        else:
+            return None
     def RunThread(self):
         self._function_to_run.start()
 
     def WaitThread(self):
         self._function_to_run.join()
+
 
 class Controller_Class:
     def __init__(self):
@@ -50,6 +86,7 @@ class Controller_Class:
             x = input()
 
             if x == "Z": # Exit condition
+                EXIT_PROGRAM = True
                 break
             elif x == "X": # Cancel current thread
                 Menu.CANCEL_FLAG = True
@@ -62,11 +99,12 @@ class Controller_Class:
                 print("[%s] is not a valid input.\nTry again" % x)
                 continue
 
-            Executer.function_to_run = (selected_Command)
-            Executer.RunThread()
+            # Executer.function_to_run = (selected_Command)
+            # Executer.RunThread()
             # Executer.WaitThread()
-            # command = selected_Command()
-            # command.run()
+            Executer.append(selected_Command)
+
+
             print("Finished loop")
 
 Controller = Controller_Class()
@@ -92,10 +130,13 @@ def main():
 
     # Set up thread.
     Controller_Thread = threading.Thread(target = Controller.GetInput)
+    Executer_Thread = threading.Thread(target = Executer.Execution_Loop)
 
     Controller_Thread.start()
+    Executer_Thread.start()
 
     Controller_Thread.join()
+    Executer_Thread.join()
 
 
 
