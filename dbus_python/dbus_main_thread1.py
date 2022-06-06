@@ -17,7 +17,6 @@ Executer_Lock = threading.Lock()
 class Event_Item:
     def __init__(self,passed_method, priority = 5, passed_args = None):
         self.Priority = priority
-        #z = sorted(x,key= lambda gg : gg.priority)
         self.Event = passed_method
         self.args = passed_args
 
@@ -53,11 +52,14 @@ class Executer_Class:
     @EventQueue.setter
     def EventQueue(self, val):
         self._EventQueue = val
-    def append(self,val):
-        val_func = val()
-        val_func_thread = threading.Thread(target = val_func.run,args = (Executer_Lock,))
-        val_event_item = Event_Item(val_func_thread,priority=2)
-        self.EventQueue = self.EventQueue + [val_event_item]
+    def append(self,function):
+        func_init = function()
+        func_event_thread = threading.Thread(target = func_init.run,args = (Executer_Lock,))
+        func_event_item = Event_Item(func_event_thread,func_init.Priority)
+        temp_EventQueue = self.EventQueue + [func_event_item]
+        self.EventQueue = sorted(temp_EventQueue, key = lambda x : x.Priority)
+        # self.EventQueue = self.EventQueue + [func_event_item]
+        # z = sorted(x,key= lambda gg : gg.priority)
         return self.EventQueue
 
     def RunNextInQueue(self):

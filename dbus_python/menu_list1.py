@@ -72,8 +72,9 @@ class eventA2:
     def __init__(self, priority = 2):
         self.hold = False
         self.Priority = priority
-    def run(self):
+    def run(self,lock):
         global CANCEL_FLAG
+        lock.acquire()
         print("A2 event")
         for i in range(5, 0, -1):
             if CANCEL_FLAG == True:
@@ -81,14 +82,16 @@ class eventA2:
                 break
             print(i)
             time.sleep(1)
-        print("Finished : A2 event")
+        lock.release()
+
 
 class eventB1:
     def __init__(self, priority = 3):
         self.hold = False
         self.Priority = priority
-    def run(self):
+    def run(self,lock):
         global CANCEL_FLAG
+        lock.acquire()
         print("B1 event")
         for i in range(5, 0, -1):
             if CANCEL_FLAG == True:
@@ -96,15 +99,16 @@ class eventB1:
                 break
             print(i)
             time.sleep(1)
+        lock.release()
 
-        print("Finished : B1 event")
 
 class eventB2:
     def __init__(self, priority = 4 ):
         self.hold = False
         self.Priority = priority
-    def run(self):
+    def run(self,lock):
         global CANCEL_FLAG
+        lock.acquire()
         print("B2 event")
         for i in range(5, 0, -1):
             if CANCEL_FLAG == True:
@@ -112,7 +116,8 @@ class eventB2:
                 break
             print(i)
             time.sleep(1)
-        print("Finished : B2 event" )
+        lock.release()
+
 
 # class Cancel_Event
 if __name__ == "__main__":
