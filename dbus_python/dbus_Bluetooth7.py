@@ -65,7 +65,7 @@ class DeviceAndProperties:
 
 
 class HubDongle:
-    def __init__(self, mac_address):
+    def __init__(self, mac_address: str ):
         """
         @info : Initialize dongle with the given mac address.
         @param : str(mac address)

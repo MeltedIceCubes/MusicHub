@@ -1,17 +1,9 @@
-# Todo :
-# Main control thread
-# Execution scheduler thread
-# Dongle Thread class A
-# Dongle Thread class B
-
 import threading
 import time
-# from menu_list1 import Menu_listing, ParseSelection, eventA1, eventA2, eventB1,eventB2,CANCEL_FLAG
 import menu_list1 as Menu
 
 EXIT_PROGRAM = False
 Executer_Lock = threading.Lock()
-# Executer_Lock = threading.Lock()
 
 
 class Event_Item:
@@ -23,7 +15,6 @@ class Event_Item:
 
 class Executer_Class:
     def __init__(self):
-        self._function_to_run = None
         self._EventQueue = []
         self.curr_event = None
 
@@ -38,28 +29,28 @@ class Executer_Class:
             time.sleep(0.2) # Delete for real implementation
 
     @property
-    def function_to_run(self):
-        return self._function_to_run
-    @function_to_run.setter
-    def function_to_run(self, new_func):
-        new_func_setup = new_func()
-        new_func_thread= threading.Thread(target = new_func_setup.run)
-        self._function_to_run = new_func_thread
-
-    @property
     def EventQueue(self):
         return self._EventQueue
     @EventQueue.setter
     def EventQueue(self, val):
         self._EventQueue = val
-    def append(self,function):
+
+    def append(self,function, priority = None):
+        if not priority:
+            priority = function.Priority
         func_init = function()
+
+        # Set up thread to be run from queue.
         func_event_thread = threading.Thread(target = func_init.run,args = (Executer_Lock,))
-        func_event_item = Event_Item(func_event_thread,func_init.Priority)
+
+        # Event Item with function and the Priority from the function itself.
+        func_event_item = Event_Item(func_event_thread,priority)
+
+        # Temp location to use for sorting
         temp_EventQueue = self.EventQueue + [func_event_item]
+
+        # Sort by priority
         self.EventQueue = sorted(temp_EventQueue, key = lambda x : x.Priority)
-        # self.EventQueue = self.EventQueue + [func_event_item]
-        # z = sorted(x,key= lambda gg : gg.priority)
         return self.EventQueue
 
     def RunNextInQueue(self):
@@ -70,11 +61,7 @@ class Executer_Class:
             return queued.Event
         else:
             return None
-    def RunThread(self):
-        self._function_to_run.start()
 
-    def WaitThread(self):
-        self._function_to_run.join()
 
 
 class Controller_Class:
@@ -101,9 +88,7 @@ class Controller_Class:
                 print("[%s] is not a valid input.\nTry again" % x)
                 continue
 
-            # Executer.function_to_run = (selected_Command)
-            # Executer.RunThread()
-            # Executer.WaitThread()
+            # Append command to queue
             Executer.append(selected_Command)
 
 
