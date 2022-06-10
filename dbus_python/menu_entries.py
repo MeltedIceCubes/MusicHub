@@ -7,9 +7,6 @@ Dongle Select :
     - Dongle 3
 
 Dongle Select/Dongle# :
-    - Initialize (if not initialized.)
-        - yes/no
-        - back
     - Power
         - on/off(Toggle)
         - back
@@ -28,25 +25,46 @@ Dongle Select/Dongle#/MediaControls:
         - Prev
         - VolUp
         - VolDn
-        - Back
+        - Back to function select
 """
 Dongle_select_msg = ['Select Dongle : ',
                      '  1 : Dongle 1',
                      '  2 : Dongle 2',
                      '  3 : Dongle 3']
-Dongle_select_select = ['1','2','3']
+Dongle_select_choices = ['1','2','3']
+Dongle_select_priority = [1,1,1]
+# Dongle Select/Dongle# :
+#     - Power
+#         - on/off(Toggle)
+#         - back
+#     - Scan
+#         - on/off(Toggle)
+#         - back
+#     - Media Controls
+#         - ... many
+#         - back
+#     - Back to dongle select
+Action_select_msg = ['Action :',
+                     '  1 : Power',
+                     '  2 : Scan',
+                     '  3 : Media Controls',
+                     '  0 : Back']
+Action_select_choices = ['1','2','3','0']
+Action_select_priority = [1,1,1,0]
 
 Power_msg = ['Power Mode :',
                     '  1 : On',
                     '  2 : Off',
                     '  0 : Back']
 Power_select = ['1','2','0']
+Power_priority = [1,1,0]
 
 Discoverable_msg = ["Discoverable: ",
                     "  1 : On",
                     "  2 : Off",
                     "  0 : Back"]
 Discoverable_select = ['1','2','0']
+Discoverable_priority = [1,1,0]
 
 Media_control_msg = ['Media Controls:',
                      '  1 : Play',
@@ -57,4 +75,5 @@ Media_control_msg = ['Media Controls:',
                      '  6 : Vol Dn'
                      '  0 : Back']
 Media_control_select = ['1','2','3','4','5','6','0']
+Media_control_priority=[1,1,1,1,1,1,0]
 

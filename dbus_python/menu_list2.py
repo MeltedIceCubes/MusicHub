@@ -18,12 +18,12 @@ CANCEL_FLAG = False
 
 
 class Menu_listing:
-    def __init__(self, message, selection_options, selection_map, priority_map):
-        self.message = message
-        self.options = selection_options
-        self.functions = selection_map
-        self.priority = priority_map
-
+    def __init__(self, menu_obj):
+        self.message    = menu_obj.msg
+        self.options    = menu_obj.select
+        self.priority   = menu_obj.priority
+        self.functions  = menu_obj.functions
+        self.data       = menu_obj.data
     def PrintMenu(self):
         for i in self.message:
             print(i)
@@ -35,26 +35,27 @@ class Menu_listing:
 def ParseSelection(menu_obj: Menu_listing, selection) -> list:
     """ Return : [index of selection]
                  None if failed. """
-    menu_selection_index = None
+    sel_index = None
     if selection:
         # Identify the selections
         try:
             # Find index of the char.
-            menu_selection_index=  menu_obj.options.index(selection[0])
+            sel_index=  menu_obj.options.index(selection[0])
         except:
             print("Invalid selection")
-            return None
+            return None, None, None
         try:  # Get the command that the index points to.
-            selected_function = menu_obj.functions[menu_selection_index]
-            function_priority = menu_obj.priority[menu_selection_index]
-            return selected_function, function_priority
+            selected_function = menu_obj.functions[sel_index]
+            function_priority = menu_obj.priority[sel_index]
+            function_data = menu_obj.data[sel_index]
+            return selected_function, function_data, function_priority
         except:
             print("No command with that input")
-            return None
+            return None, None, None
 
     else:
         print("No input")
-        return None
+        return None, None, None
 
 
 class eventA1:
@@ -136,4 +137,5 @@ class eventB2:
 
 # class Cancel_Event
 if __name__ == "__main__":
+    pass
     x = eventA1().run()

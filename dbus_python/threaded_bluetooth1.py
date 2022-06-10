@@ -68,13 +68,13 @@ class Executer_Class:
     #     self._EventQueue = val
 
 
-    def append(self, function, lock_to_use, priority):
-        global Dongle_Selection
+    def append(self, function, lock_to_use, data, priority):
+        global Dongle_Selection, Hub_Dongle1, Hub_Dongle2, Hub_Dongle3
 
         func_init = function
 
         # Set up thread to be run from queue.
-        func_event_thread = threading.Thread(target = func_init,args = (lock_to_use,))
+        func_event_thread = threading.Thread(target = func_init,args = (lock_to_use,data,))
 
         # Event Item with function and the Priority from the function itself.
         func_event_item = Event_Item(func_event_thread, priority)
@@ -134,8 +134,8 @@ class Controller_Class:
             # TODO : ADD THREAD CANCEL FLAG
 
             # Get command from the input choice.
-            selected_command, command_priority = Menu.ParseSelection(self.CurrMenu,x)
-            Executer.append(selected_command,D1_Lock,command_priority)
+            selected_command, data, command_priority= Menu.ParseSelection(self.CurrMenu,x)
+            Executer.append(selected_command,D1_Lock,data, command_priority)
 
 class HubDongle:
     def __init__(self, lock, mac_address: str):
@@ -144,8 +144,6 @@ class HubDongle:
         @param : str(mac address)
                 Ex. "00:1A:7D:DA:71:13"
         """
-
-        pass
 
         try:
             # Make adapter object with specified mac address.
@@ -158,36 +156,66 @@ class HubDongle:
 
 
 def InitializeAllDongles():
+    global Hub_Dongle1,Hub_Dongle2,Hub_Dongle3
     Hub_Dongle1 = HubDongle(D1_Lock, MAC_LIST[1])
-
     Hub_Dongle2 = HubDongle(D2_Lock, MAC_LIST[2])
-
     Hub_Dongle3 = HubDongle(D3_Lock, MAC_LIST[3])
 
 
-def select_dongle1(lock):
+def select_dongle1(lock,data):
+    global Hub_Dongle1, Dongle_Selection
+    data = None
     lock.acquire()
-    print("Dongel 1")
     Dongle_Selection = Hub_Dongle1
+    print("Dongle 1 selected. Address = %s" %str(id(Dongle_Selection)))
+    # print(id(Dongle_Selection), " : ", id(Hub_Dongle1))
     lock.release()
-def select_dongle2(lock):
+def select_dongle2(lock,data):
+    global Hub_Dongle2, Dongle_Selection
+    data = None
     lock.acquire()
-    print("Dongel 2")
     Dongle_Selection = Hub_Dongle2
+    print("Dongle 2 selected. Address = %s" % str(id(Dongle_Selection)))
+    # print(id(Dongle_Selection), " : ",id(Hub_Dongle2))
     lock.release()
-def select_dongle3(lock):
+def select_dongle3(lock,data):
+    global Hub_Dongle3, Dongle_Selection
+    data = None
     lock.acquire()
-    print("Dongel 3")
     Dongle_Selection = Hub_Dongle3
+    Dongle_selection = data
+    print("Dongle 3 selected. Address = %s" % str(id(Dongle_Selection)))
+    # print(id(Dongle_Selection), " : ", id(Hub_Dongle3))
     lock.release()
 
-class Dongle_Select_Obj:
-    def __init__(self):
-        self.msg       = menu_entries.Dongle_select_msg
-        self.select    = menu_entries.Dongle_select_select
-        self.functions = [select_dongle1, select_dongle2,select_dongle3]
-        self.priority  = [1,1,1]
+def Power_toggle(lock, data):
+    lock.acquire()
+    data = None
+    print("Power toggle")
+    lock.release()
+def Scan_toggle(lock, data):
+    lock.acquire()
+    data = None
+    print("Scan toggle")
+    lock.release()
+def Media_controls(lock, data):
+    lock.acquire()
+    data = None
+    print("Media Controls")
+    lock.release()
+def BackTo_DongleSelect(lock, data):
+    lock.acquire()
+    data = None
+    print("Back to dongle select")
+    lock.release()
 
+class Menu_selection_class:
+    def __init__(self,msg,select,priority,functions,data):
+        self.msg       = msg
+        self.select    = select
+        self.priority  = priority
+        self.functions = functions
+        self.data      = data
 
 # *****************************
 #      Define Constants
@@ -229,15 +257,33 @@ D1_Cancel = False
 D2_Cancel = False
 D3_Cancel = False
 
-Dongle_Selection_menu = Dongle_Select_Obj()
+Dongle_Selection_menu = Menu_selection_class(
+    menu_entries.Dongle_select_msg,
+    menu_entries.Dongle_select_choices,
+    menu_entries.Dongle_select_priority,
+    [select_dongle1, select_dongle2, select_dongle3],
+    [None, None, None])
+
+Function_Selection_menu = Menu_selection_class(
+    menu_entries.Action_select_msg,
+    menu_entries.Action_select_choices,
+    menu_entries.Action_select_priority,
+    [Power_toggle, Scan_toggle, Media_controls, BackTo_DongleSelect],
+    [None, None, None, None])
+
 
 def main():
-    InitializeAllDongles()
-    Controller.CurrMenu = Menu.Menu_listing(Dongle_Selection_menu.msg,
-                                            Dongle_Selection_menu.select,
-                                            Dongle_Selection_menu.functions,
-                                            Dongle_Selection_menu.priority)
+    global Hub_Dongle1,Dongle_Selection
 
+    InitializeAllDongles()
+
+    # Just to set as default.
+    Dongle_Selection = Hub_Dongle1
+
+    # Controller.CurrMenu = Menu.Menu_listing(Dongle_Selection_menu)
+    Controller.CurrMenu = Menu.Menu_listing(Function_Selection_menu)
+
+    # Set up threads
     Controller_Thread = threading.Thread(target = Controller.GetInput)
     Executer_Thread   = threading.Thread(target = Executer.Execution_Loop)
 
