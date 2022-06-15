@@ -118,7 +118,8 @@ class Executer_Class:
 
 class Controller_Class:
     def __init__(self):
-        print("Press Z at any time to quit\n\n")
+        print("Press Z at any time to quit\n"
+              "Press R to refresh menu\n\n")
         self.CurrMenu = None
 
     def GetInput(self):
@@ -131,6 +132,9 @@ class Controller_Class:
             if x =="Z": # Exit condition
                 EXIT_PROGRAM = True
                 break
+            if x == "R": # Refresh Menu
+                continue
+
             # TODO : ADD THREAD CANCEL FLAG
 
             # Get command from the input choice.
@@ -168,7 +172,7 @@ def select_dongle1(lock,data):
     lock.acquire()
     Dongle_Selection = Hub_Dongle1
     print("Dongle 1 selected. Address = %s" %str(id(Dongle_Selection)))
-    # print(id(Dongle_Selection), " : ", id(Hub_Dongle1))
+    MenuTo_FunctionSelection()
     lock.release()
 def select_dongle2(lock,data):
     global Hub_Dongle2, Dongle_Selection
@@ -176,27 +180,28 @@ def select_dongle2(lock,data):
     lock.acquire()
     Dongle_Selection = Hub_Dongle2
     print("Dongle 2 selected. Address = %s" % str(id(Dongle_Selection)))
-    # print(id(Dongle_Selection), " : ",id(Hub_Dongle2))
+    MenuTo_FunctionSelection()
     lock.release()
 def select_dongle3(lock,data):
     global Hub_Dongle3, Dongle_Selection
     data = None
     lock.acquire()
     Dongle_Selection = Hub_Dongle3
-    Dongle_selection = data
     print("Dongle 3 selected. Address = %s" % str(id(Dongle_Selection)))
-    # print(id(Dongle_Selection), " : ", id(Hub_Dongle3))
+    MenuTo_FunctionSelection()
     lock.release()
 
-def Power_toggle(lock, data):
+def Power_control(lock, data):
     lock.acquire()
     data = None
     print("Power toggle")
+    MenuTo_PowerSelection()
     lock.release()
-def Scan_toggle(lock, data):
+def Scan_control(lock, data):
     lock.acquire()
     data = None
     print("Scan toggle")
+    MenuTo_ScanSelection()
     lock.release()
 def Media_controls(lock, data):
     lock.acquire()
@@ -207,15 +212,50 @@ def BackTo_DongleSelect(lock, data):
     lock.acquire()
     data = None
     print("Back to dongle select")
+    MenuTo_DongleSelection()
     lock.release()
 
-class Menu_selection_class:
-    def __init__(self,msg,select,priority,functions,data):
-        self.msg       = msg
-        self.select    = select
-        self.priority  = priority
-        self.functions = functions
-        self.data      = data
+def Power_on(lock, data):
+    lock.acquire()
+    data = None
+    print("Power on")
+    lock.release()
+def Power_off(lock, data):
+    lock.acquire()
+    data = None
+    print("Power off")
+    lock.release()
+def Power_backToFunctions(lock, data):
+    lock.acquire()
+    data = None
+    print("Back to Function Select")
+    MenuTo_FunctionSelection()
+    lock.release()
+
+def Scan_on(lock, data):
+    lock.acquire()
+    data = None
+    print("Scan on")
+    lock.release()
+def Scan_off(lock, data):
+    lock.acquire()
+    data = None
+    print("Scan off")
+    lock.release()
+def Scan_backToFunctions(lock, data):
+    lock.acquire()
+    data = None
+    print("Back to Function Select")
+    MenuTo_FunctionSelection()
+    lock.release()
+
+# class Menu_selection_class:
+#     def __init__(self,msg,select,priority,functions,data):
+#         self.msg       = msg
+#         self.select    = select
+#         self.priority  = priority
+#         self.functions = functions
+#         self.data      = data
 
 # *****************************
 #      Define Constants
@@ -257,20 +297,46 @@ D1_Cancel = False
 D2_Cancel = False
 D3_Cancel = False
 
-Dongle_Selection_menu = Menu_selection_class(
+Dongle_Selection_menu = Menu.Menu_listing(
     menu_entries.Dongle_select_msg,
     menu_entries.Dongle_select_choices,
     menu_entries.Dongle_select_priority,
     [select_dongle1, select_dongle2, select_dongle3],
     [None, None, None])
+def MenuTo_DongleSelection():
+    global Controller
+    Controller.CurrMenu = Dongle_Selection_menu
 
-Function_Selection_menu = Menu_selection_class(
+
+Function_Selection_menu = Menu.Menu_listing(
     menu_entries.Action_select_msg,
     menu_entries.Action_select_choices,
     menu_entries.Action_select_priority,
-    [Power_toggle, Scan_toggle, Media_controls, BackTo_DongleSelect],
+    [Power_control, Scan_control, Media_controls, BackTo_DongleSelect],
     [None, None, None, None])
+def MenuTo_FunctionSelection():
+    global Controller
+    Controller.CurrMenu = Function_Selection_menu
 
+Power_menu = Menu.Menu_listing(
+    menu_entries.Power_msg,
+    menu_entries.Power_select,
+    menu_entries.Power_priority,
+    [Power_on, Power_off, Power_backToFunctions],
+    [None, None, None, None])
+def MenuTo_PowerSelection():
+    global Controller
+    Controller.CurrMenu = Power_menu
+
+Scan_menu = Menu.Menu_listing(
+    menu_entries.Scan_msg,
+    menu_entries.Scan_select,
+    menu_entries.Scan_priority,
+    [Scan_on, Scan_off, Scan_backToFunctions],
+    [None, None, None])
+def MenuTo_ScanSelection():
+    global Controller
+    Controller.CurrMenu = Scan_menu
 
 def main():
     global Hub_Dongle1,Dongle_Selection
@@ -280,8 +346,8 @@ def main():
     # Just to set as default.
     Dongle_Selection = Hub_Dongle1
 
-    # Controller.CurrMenu = Menu.Menu_listing(Dongle_Selection_menu)
-    Controller.CurrMenu = Menu.Menu_listing(Function_Selection_menu)
+    Controller.CurrMenu = Dongle_Selection_menu
+    # Controller.CurrMenu = Function_Selection_menu
 
     # Set up threads
     Controller_Thread = threading.Thread(target = Controller.GetInput)

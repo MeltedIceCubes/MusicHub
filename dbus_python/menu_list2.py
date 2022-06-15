@@ -18,12 +18,12 @@ CANCEL_FLAG = False
 
 
 class Menu_listing:
-    def __init__(self, menu_obj):
-        self.message    = menu_obj.msg
-        self.options    = menu_obj.select
-        self.priority   = menu_obj.priority
-        self.functions  = menu_obj.functions
-        self.data       = menu_obj.data
+    def __init__(self,msg,select,priority,functions,data):
+        self.message    = msg
+        self.options    = select
+        self.priority   = priority
+        self.functions  = functions
+        self.data       = data
     def PrintMenu(self):
         for i in self.message:
             print(i)

@@ -59,6 +59,13 @@ Power_msg = ['Power Mode :',
 Power_select = ['1','2','0']
 Power_priority = [1,1,0]
 
+Scan_msg = ['Scan Mode:',
+            '  1 : On',
+            '  2 : Off',
+            '  0 : Back']
+Scan_select = ['1','2','0']
+Scan_priority = [1,1,0]
+
 Discoverable_msg = ["Discoverable: ",
                     "  1 : On",
                     "  2 : Off",
