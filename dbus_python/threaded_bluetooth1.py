@@ -5,7 +5,7 @@
 # ***************************
 # ***   Package imports   ***
 # ---------------------------
-from bluezero import adapter, device
+from cust_bluezero import adapter, device
 import time
 import dbus
 from xml.etree import ElementTree
@@ -14,6 +14,7 @@ import sys
 import threading
 import menu_list2 as Menu
 import menu_entries
+import dbus_Bluetooth8 as Bluetooth
 
 # *****************************
 #      Class Definitions
@@ -125,6 +126,8 @@ class Controller_Class:
     def GetInput(self):
         global EXIT_PROGRAM
         while not EXIT_PROGRAM:
+            while Ctrl_Lock.locked():
+                pass
             self.CurrMenu.PrintMenu()
 
             x = input()
@@ -141,29 +144,14 @@ class Controller_Class:
             selected_command, data, command_priority= Menu.ParseSelection(self.CurrMenu,x)
             Executer.append(selected_command,D1_Lock,data, command_priority)
 
-class HubDongle:
-    def __init__(self, lock, mac_address: str):
-        """
-        @info : Initialize dongle with the given mac address.
-        @param : str(mac address)
-                Ex. "00:1A:7D:DA:71:13"
-        """
-
-        try:
-            # Make adapter object with specified mac address.
-            this_Dongle = adapter.Adapter(mac_address)
-            # this_Dongle.on_device_found = self.on_device_found
-            self.Dongle = this_Dongle
-        except:
-            self.Dongle = None
-            raise DongleInitError("Dongle with MAC:%s could not initialize" % mac_address)
+            time.sleep(0.2)
 
 
 def InitializeAllDongles():
     global Hub_Dongle1,Hub_Dongle2,Hub_Dongle3
-    Hub_Dongle1 = HubDongle(D1_Lock, MAC_LIST[1])
-    Hub_Dongle2 = HubDongle(D2_Lock, MAC_LIST[2])
-    Hub_Dongle3 = HubDongle(D3_Lock, MAC_LIST[3])
+    Hub_Dongle1 = Bluetooth.HubDongle(D1_Lock, MAC_LIST[1])
+    Hub_Dongle2 = Bluetooth.HubDongle(D2_Lock, MAC_LIST[2])
+    Hub_Dongle3 = Bluetooth.HubDongle(D3_Lock, MAC_LIST[3])
 
 
 def select_dongle1(lock,data):
@@ -217,13 +205,17 @@ def BackTo_DongleSelect(lock, data):
 
 def Power_on(lock, data):
     lock.acquire()
+    global Dongle_Selection
+    Dongle_Selection.power_on()
     data = None
-    print("Power on")
+    # print("Power on")
     lock.release()
 def Power_off(lock, data):
     lock.acquire()
+    global Dongle_Selection
+    Dongle_Selection.power_off()
     data = None
-    print("Power off")
+    # print("Power off")
     lock.release()
 def Power_backToFunctions(lock, data):
     lock.acquire()
@@ -234,8 +226,25 @@ def Power_backToFunctions(lock, data):
 
 def Scan_on(lock, data):
     lock.acquire()
+    global Dongle_Selection, Ctrl_Lock
+    if Dongle_Selection.Dongle.powered:
+        Ctrl_Lock.acquire()
+        print("Scan on")
+        Dongle_Selection.discoverable_on()
+        try :
+            Dongle_Selection.Dongle.nearby_discovery(timeout=15) #Start Scan.
+        except:
+            pass
+        Dongle_Selection.find_devices_in_adapter() #List pairable devices.
+        Dongle_Selection.get_media_controls() # Get media controls.
+        Dongle_Selection.discoverable_off()
+        # Ctrl_Lock.release()
+    else:
+        print("Power is off. Can\'t start scan")
     data = None
-    print("Scan on")
+    print("Scan stopped")
+    if Ctrl_Lock.locked():
+        Ctrl_Lock.release()
     lock.release()
 def Scan_off(lock, data):
     lock.acquire()
@@ -270,9 +279,8 @@ MAC_LIST = ["DC:A6:32:92:BF:F5",
             # MusicHub : 2
             # MusicHub : 3
 
-
 # ********************************
-#     Define Global Variables
+#         Define Globals
 # --------------------------------
 EXIT_PROGRAM = False
 
@@ -288,6 +296,7 @@ Hub_Dongle2 = None # 00:1A:7D:DA:71:14
 Hub_Dongle3 = None # 00:1A:7D:DA:71:15
 
 # Thread lock objs
+Ctrl_Lock = threading.Lock()
 D1_Lock = threading.Lock()
 D2_Lock = threading.Lock()
 D3_Lock = threading.Lock()
@@ -363,3 +372,8 @@ if __name__ == "__main__":
     print("Starting Program")
     main()
     print("Ending Program")
+
+
+#TODO : Implement Controller blocker.
+#        Ex. Scan result selection does cannot get input.
+#                - Controller gets the input before "find_devices_in_adapter" can get it
