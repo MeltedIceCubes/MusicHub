@@ -212,6 +212,8 @@ class HubDongle:
         manager = dbus.Interface(bus.get_object("org.bluez", "/"), "org.freedesktop.DBus.ObjectManager")
         objects = manager.GetManagedObjects()
         device_list = []
+        self.usable_devices = []
+        self.device_list = []
         for path, ifaces in objects.items():
             found_device = ifaces.get("org.bluez.Device1")
             if found_device is None:
@@ -225,6 +227,7 @@ class HubDongle:
                 self.device_list.append(device_and_properties)
 
         # Iterate through devices looking for device with a name attribute.
+
         for device in self.device_list:
             try:
                 if "Name" in device.properties:
@@ -661,7 +664,6 @@ def main():
         Hub_Input1_Dongle.power_on()
 
         # Discoverable on
-        Hub_Input1_Dongle.discoverable_on()
         Hub_Input1_Dongle.discoverable_on()
 
         # Start scan

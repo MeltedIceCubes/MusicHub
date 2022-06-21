@@ -50,37 +50,37 @@ Action_select_msg = ['Action :',
                      '  3 : Media Controls',
                      '  0 : Back']
 Action_select_choices = ['1','2','3','0']
-Action_select_priority = [1,1,1,0]
+Action_select_priority = [1,1,1,1]
 
 Power_msg = ['Power Mode :',
                     '  1 : On',
                     '  2 : Off',
                     '  0 : Back']
 Power_select = ['1','2','0']
-Power_priority = [1,1,0]
+Power_priority = [1,1,1]
 
 Scan_msg = ['Scan Mode:',
             '  1 : On',
             '  2 : Off',
             '  0 : Back']
 Scan_select = ['1','2','0']
-Scan_priority = [1,1,0]
+Scan_priority = [1,1,1]
 
 Discoverable_msg = ["Discoverable: ",
                     "  1 : On",
                     "  2 : Off",
                     "  0 : Back"]
 Discoverable_select = ['1','2','0']
-Discoverable_priority = [1,1,0]
+Discoverable_priority = [1,1,1]
 
 Media_control_msg = ['Media Controls:',
                      '  1 : Play',
                      '  2 : Pause',
                      '  3 : Next',
                      '  4 : Previous',
-                     '  5 : Vol Up',
-                     '  6 : Vol Dn'
+                     '  5 : Vol Dn',
+                     '  6 : Vol Up'
                      '  0 : Back']
 Media_control_select = ['1','2','3','4','5','6','0']
-Media_control_priority=[1,1,1,1,1,1,0]
+Media_control_priority=[1,1,1,1,1,1,1]
 

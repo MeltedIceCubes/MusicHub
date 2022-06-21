@@ -146,7 +146,6 @@ class Controller_Class:
 
             time.sleep(0.2)
 
-
 def InitializeAllDongles():
     global Hub_Dongle1,Hub_Dongle2,Hub_Dongle3
     Hub_Dongle1 = Bluetooth.HubDongle(D1_Lock, MAC_LIST[1])
@@ -195,6 +194,7 @@ def Media_controls(lock, data):
     lock.acquire()
     data = None
     print("Media Controls")
+    MenuTo_MediaSelection()
     lock.release()
 def BackTo_DongleSelect(lock, data):
     lock.acquire()
@@ -232,19 +232,19 @@ def Scan_on(lock, data):
         print("Scan on")
         Dongle_Selection.discoverable_on()
         try :
-            Dongle_Selection.Dongle.nearby_discovery(timeout=15) #Start Scan.
+            Dongle_Selection.Dongle.nearby_discovery(timeout=5) #Start Scan.
         except:
             pass
         Dongle_Selection.find_devices_in_adapter() #List pairable devices.
         Dongle_Selection.get_media_controls() # Get media controls.
         Dongle_Selection.discoverable_off()
-        # Ctrl_Lock.release()
     else:
         print("Power is off. Can\'t start scan")
     data = None
     print("Scan stopped")
     if Ctrl_Lock.locked():
         Ctrl_Lock.release()
+    MenuTo_ScanSelection()
     lock.release()
 def Scan_off(lock, data):
     lock.acquire()
@@ -254,6 +254,50 @@ def Scan_off(lock, data):
 def Scan_backToFunctions(lock, data):
     lock.acquire()
     data = None
+    print("Back to Function Select")
+    MenuTo_FunctionSelection()
+    lock.release()
+
+def Media_Play(lock,data):
+    lock.acquire()
+    global Dongle_Selection
+    Dongle_Selection.MediaControl.MediaController.Play()
+    print("Play")
+    lock.release()
+def Media_Pause(lock,data):
+    lock.acquire()
+    global Dongle_Selection
+    Dongle_Selection.MediaControl.MediaController.Pause()
+    print("Pause")
+    lock.release()
+def Media_Prev(lock,data):
+    lock.acquire()
+    global Dongle_Selection
+    Dongle_Selection.MediaControl.MediaController.Previous()
+    print("Prev")
+    lock.release()
+def Media_Next(lock,data):
+    lock.acquire()
+    global Dongle_Selection
+    Dongle_Selection.MediaControl.MediaController.Next()
+    print("Next")
+    lock.release()
+def Media_VolDn(lock,data):
+    lock.acquire()
+    global Dongle_Selection
+    print("VolDn")
+    volume = Dongle_Selection.MediaControl.VolumeDown()
+    print(volume)
+    lock.release()
+def Media_VolUp(lock, data):
+    lock.acquire()
+    global Dongle_Selection
+    print("VolUp")
+    volume = Dongle_Selection.MediaControl.VolumeUp()
+    print(volume)
+    lock.release()
+def Media_backToFunctions(lock,data):
+    lock.acquire()
     print("Back to Function Select")
     MenuTo_FunctionSelection()
     lock.release()
@@ -316,7 +360,6 @@ def MenuTo_DongleSelection():
     global Controller
     Controller.CurrMenu = Dongle_Selection_menu
 
-
 Function_Selection_menu = Menu.Menu_listing(
     menu_entries.Action_select_msg,
     menu_entries.Action_select_choices,
@@ -346,6 +389,22 @@ Scan_menu = Menu.Menu_listing(
 def MenuTo_ScanSelection():
     global Controller
     Controller.CurrMenu = Scan_menu
+
+Media_menu = Menu.Menu_listing(
+    menu_entries.Media_control_msg,
+    menu_entries.Media_control_select,
+    menu_entries.Media_control_priority,
+    [Media_Play,
+     Media_Pause,
+     Media_Prev,
+     Media_Next,
+     Media_VolDn,
+     Media_VolUp,
+     Media_backToFunctions],
+    [None, None, None, None, None, None, None])
+def MenuTo_MediaSelection():
+    global Controller
+    Controller.CurrMenu = Media_menu
 
 def main():
     global Hub_Dongle1,Dongle_Selection
