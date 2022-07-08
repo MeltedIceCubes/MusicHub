@@ -23,28 +23,28 @@ MAC_LIST = ["DC:A6:32:92:BF:F5",
             "00:1A:7D:DA:71:13",
             "00:1A:7D:DA:71:14",
             "00:1A:7D:DA:71:15"]
-            # raspberry pi
-            # MusicHub : 1
-            # MusicHub : 2
-            # MusicHub : 3
+# raspberry pi
+# MusicHub : 1
+# MusicHub : 2
+# MusicHub : 3
 
 # ******************
 #    Capabilities
 # ------------------
-DISPLAY_ONLY         = "DisplayOnly"
-DISPLAY_YES_NO       = "DisplayYesNo"
-KEYBOARD_ONLY        = "KeyboardOnly"
-NO_INPUT_NO_OUTPUT   = "NoInputNoOutput"
-KEYBOARD_DISPLAY     = "KeyboardDisplay"
+DISPLAY_ONLY = "DisplayOnly"
+DISPLAY_YES_NO = "DisplayYesNo"
+KEYBOARD_ONLY = "KeyboardOnly"
+NO_INPUT_NO_OUTPUT = "NoInputNoOutput"
+KEYBOARD_DISPLAY = "KeyboardDisplay"
 
 # ********************************
 #    Bus paths and object paths
 # --------------------------------
-BLUEZ_BUS_NAME       = 'org.bluez'
-BLUEZ_OBJ_PATH       = '/org/bluez'
-AGENT_INTERFACE      = 'org.bluez.Agent1'
-AGENT_PATH           = '/test/agent'
-AGENT_MANAGER        = 'org.bluez.AgentManager1'
+BLUEZ_BUS_NAME = 'org.bluez'
+BLUEZ_OBJ_PATH = '/org/bluez'
+AGENT_INTERFACE = 'org.bluez.Agent1'
+AGENT_PATH = '/test/agent'
+AGENT_MANAGER = 'org.bluez.AgentManager1'
 
 # ********************
 #    Dongle Objects
@@ -58,22 +58,24 @@ FoundDevObjList = list()
 DBusStragglers = list()
 bus = None
 
+
 class DeviceAndProperties:
-    def __init__(self, deviceObj, properties):
+    def __init__(self, deviceObj, properties, props_iface):
         self.deviceObj = deviceObj
         self.properties = properties
+        self.props_iface = props_iface
 
 
 class HubDongle:
-    def __init__(self, mac_address: str ):
+    def __init__(self, mac_address: str):
         """
-        @info : Initialize dongle with the given mac address.
+        @info : Initialize dongle with the givenpair_and_connect mac address.
         @param : str(mac address)
                 Ex. "00:1A:7D:DA:71:13"
         """
-        self.device_list    = [] # Populate with class: DeviceAndProperties.
-                                 # - deviceObj
-                                 # - properties
+        self.device_list = []  # Populate with class: DeviceAndProperties.
+        # - deviceObj
+        # - properties
         self.usable_devices = []
         self.connected_obj = None
         self.MediaControl = self.MediaControlClass()
@@ -145,13 +147,14 @@ class HubDongle:
         try:
             self.Dongle.discoverable = False
         except:
-            pass    # means it was on or some other issue.
+            pass  # means it was on or some other issue.
 
-    def pair_and_connect(self, found_device):
+    def pair_and_connect(self, device_and_props):
         """
         @info : Pair and Connect to a found device.
         @param : device object
         """
+        found_device = device_and_props.deviceObj
         if found_device:
             pairResultError = True
             try:
@@ -163,11 +166,19 @@ class HubDongle:
                 return 0
 
             print("Device paired.")
+
+            trustResultError = True
+            try:
+                trustResultError = device_and_props.props_iface.Set("org.bluez.Device1", "Trusted", True)
+            except Exception as ee:
+                print(ee)
+                print("Failed to trust")
+
             connectResultError = True
             try:
                 connectResultError = found_device.Connect()
-            except Exception as ee:
-                connectResultError = connect_exception_handler(ee)
+            except Exception as eee:
+                connectResultError = connect_exception_handler(eee)
             if connectResultError:
                 print("Connecting Failed.")
                 return 0
@@ -215,7 +226,7 @@ class HubDongle:
                 props_iface = dbus.Interface(obj, 'org.freedesktop.DBus.Properties')
                 properties = props_iface.GetAll("org.bluez.Device1")
                 device_itself = dbus.Interface(obj, "org.bluez.Device1")
-                device_and_properties = DeviceAndProperties(device_itself, properties)
+                device_and_properties = DeviceAndProperties(device_itself, properties, props_iface)
                 self.device_list.append(device_and_properties)
 
         # Iterate through devices looking for device with a name attribute.
@@ -242,13 +253,11 @@ class HubDongle:
             print("Invalid Selection")
             return False
         else:
-            try:
-                target = self.usable_devices[selection - 1]
-                self.pair_and_connect(target.deviceObj)
-            except:
-                pass
-
-
+            # try:
+            target = self.usable_devices[selection - 1]
+            self.pair_and_connect(target)
+            # except:
+            #     pass
 
     def list_usable_devices(self):
         """
@@ -260,7 +269,7 @@ class HubDongle:
         for device in self.device_list:
             try:
                 if "Name" in device.properties:
-                    #Add to list if it has a "Name" attribute
+                    # Add to list if it has a "Name" attribute
                     self.usable_devices.append(device)
             except:
                 print("Could not print name of this device")
@@ -268,17 +277,17 @@ class HubDongle:
         # Iterate through with a number to use so that you can select.
         # Note: Numbers start from 1 so we need to -1 from the actual input.
         for i, device in enumerate(self.usable_devices, 1):
-            print("%d : %s" %(i, device.properties["Name"]))
+            print("%d : %s" % (i, device.properties["Name"]))
 
         # Get selection from user. This can be replaced with something else later.
         selection = int(input())
-        if selection > i or selection <1:
+        if selection > i or selection < 1:
             print("Invalid Selection")
             return False
         else:
             try:
-                target = self.usable_devices[selection-1]
-                self.pair_and_connect(target.deviceObj)
+                target = self.usable_devices[selection - 1]
+                self.pair_and_connect(target)
             except:
                 pass
 
@@ -319,15 +328,13 @@ class HubDongle:
             if self.MediaControl.MediaPlayer is None:
                 print("No MediaPlayer was found")
 
-
-
     def getMediaTransport(self):
         """https://scribles.net/controlling-bluetooth-audio-on-raspberry-pi/"""
         obj = bus.get_object('org.bluez', "/")
         mgr = dbus.Interface(obj, 'org.freedesktop.DBus.ObjectManager')
         try:
             for path, ifaces in mgr.GetManagedObjects().items():
-                if (self.connected_obj.object_path in path ) and \
+                if (self.connected_obj.object_path in path) and \
                         ('org.bluez.MediaTransport1' in ifaces):
                     self.MediaControl.MediaTransporter = dbus.Interface(
                         bus.get_object('org.bluez', path),
@@ -343,8 +350,8 @@ class HubDongle:
     class MediaControlClass:
         def __init__(self):
             self.MediaController = None
-            self.MediaPlayer     = None
-            self.MediaTransporter= None
+            self.MediaPlayer = None
+            self.MediaTransporter = None
 
         def use_media_controls(self):
             if self.MediaController is None and self.MediaPlayer is None and self.MediaTransporter is None:
@@ -409,9 +416,9 @@ class HubDongle:
                         elif x[1] == "7":
                             self.MediaController.Stop()
                         elif x[1] == "8":
-                            self.MediaController.VolumeDown() # Doesn't work
+                            self.MediaController.VolumeDown()  # Doesn't work
                         elif x[1] == "9":
-                            self.MediaController.VolumeUp() # Doesn't work
+                            self.MediaController.VolumeUp()  # Doesn't work
                     if x[0] == "w" or x[0] == "W":
                         if x[1] == "1":
                             self.MediaPlayer.FastForward()
@@ -434,13 +441,13 @@ class HubDongle:
                         elif x[1] == "0":
                             self.MediaPlayer.Stop()
                     if x[0] == "e" or x[0] == "E":
-                        if x[1] == "1": # Get Volume
+                        if x[1] == "1":  # Get Volume
                             volume = self.GetVolume()
                             print(volume)
-                        elif x[1] == "2": # Volume Down
+                        elif x[1] == "2":  # Volume Down
                             volume = self.VolumeDown()
                             print(volume)
-                        elif x[1] == "3": # Volume Up
+                        elif x[1] == "3":  # Volume Up
                             volume = self.VolumeUp()
                             print(volume)
 
@@ -471,10 +478,11 @@ class HubDongle:
                 if volume < 0:
                     volume = 0
                 self.MediaTransporter.Set('org.bluez.MediaTransport1', 'Volume', dbus.UInt16(volume))
-            except: 
+            except:
                 volume = None
-            finally: 
+            finally:
                 return volume
+
         def Play_Control(self):
             pass
 
@@ -488,16 +496,14 @@ class HubDongle:
             pass
 
 
-
-
 class DongleInitError(Exception):
     """@info: Exception for InitializeDongle()"""
     pass
 
 
 class StragglerObj():
-    def __init__(self, obj_path:str):
-        self.path   = obj_path
+    def __init__(self, obj_path: str):
+        self.path = obj_path
         self.Remove = None
 
 
@@ -548,7 +554,7 @@ def find_dbus_stragglers():
     @param : adapter object to introspect.
     """
     global bus
-    service     = 'org.bluez'
+    service = 'org.bluez'
     object_path = '/org/bluez'
     recursive_introspection(service, object_path)
     list_dbus_stragglers()
@@ -559,7 +565,7 @@ def list_dbus_stragglers():
     @info : NON FUNCTIONAL. JUST VISUAL.
             Print the DBus Stragglers.
     """
-    global DBusStragglers   # List of strings
+    global DBusStragglers  # List of strings
     print("\nListing Stragglers:")
     for s in DBusStragglers:
         print(s.path)
@@ -572,7 +578,7 @@ def pair_exception_handler(error):
     @note : more info here :
             https://git.kernel.org/pub/scm/bluetooth/bluez.git/tree/doc/device-api.txt
     """
-    if "org.bluez.Error.AlreadyExists" in str(error):    # The only acceptable error
+    if "org.bluez.Error.AlreadyExists" in str(error):  # The only acceptable error
         print("AlreadyExists")
         return None
     else:
@@ -601,19 +607,19 @@ def remove_stragglers(white_list, this_dongle):
     for straggler in DBusStragglers:
         for white_list_item in white_list:
             if white_list_item in straggler.path:
-                straggler.Remove = False            # Mark it to not remove
-            elif straggler.Remove is not False:     # Make sure that it hasn't been marked to not remove
+                straggler.Remove = False  # Mark it to not remove
+            elif straggler.Remove is not False:  # Make sure that it hasn't been marked to not remove
                 straggler.Remove = True
     for straggler in DBusStragglers:
         try:
-            if straggler.Remove is not False:        # If marked for removal
+            if straggler.Remove is not False:  # If marked for removal
                 this_dongle.remove_device(straggler.path)
                 print("Removed : %s" % straggler.path)
         except:
             pass
 
 
-def shutdown(whiteList, dongle_1 = None, dongle_2 = None, dongle_3 = None):
+def shutdown(whiteList, dongle_1=None, dongle_2=None, dongle_3=None):
     dongle_list = []
     # Make dongle list
     if dongle_1:
@@ -623,13 +629,12 @@ def shutdown(whiteList, dongle_1 = None, dongle_2 = None, dongle_3 = None):
     if dongle_3:
         dongle_list.append(dongle_3)
 
-
     find_dbus_stragglers()  # List DBus cache stragglers
 
     for dongle in dongle_list:
         # Remove stragglers except the ones that are White-Listed
         remove_stragglers(whiteList, dongle.Dongle)
-        
+
         # Power off
         dongle.power_off()
 
@@ -637,10 +642,10 @@ def shutdown(whiteList, dongle_1 = None, dongle_2 = None, dongle_3 = None):
 def main():
     global Hub_Input1_Dongle, Hub_Output_Dongle, bus
 
-    bus = dbus.SystemBus()                                              # Define global system bus to use
-    bluez_obj       = bus.get_object(BLUEZ_BUS_NAME, BLUEZ_OBJ_PATH)    # Get proxy object
-    agent_manager   = dbus.Interface(bluez_obj, AGENT_MANAGER)          # Get agent manager
-    agent_manager.RegisterAgent(AGENT_PATH, NO_INPUT_NO_OUTPUT)         # Set agent as NoInputNoOutput mode
+    bus = dbus.SystemBus()  # Define global system bus to use
+    bluez_obj = bus.get_object(BLUEZ_BUS_NAME, BLUEZ_OBJ_PATH)  # Get proxy object
+    agent_manager = dbus.Interface(bluez_obj, AGENT_MANAGER)  # Get agent manager
+    agent_manager.RegisterAgent(AGENT_PATH, NO_INPUT_NO_OUTPUT)  # Set agent as NoInputNoOutput mode
 
     # ****************
     # *** Dongle 1 ***
@@ -659,7 +664,7 @@ def main():
 
         # Start scan
         Hub_Input1_Dongle.Dongle.nearby_discovery(timeout=15)
-        #I think to stop it, it would be :
+        # I think to stop it, it would be :
         #       Hub_Input1_Dongle.Dongle.stop_discovery()
 
     # List pairable devices.
@@ -674,7 +679,7 @@ def main():
 
     x1 = int(input("Type 0 to exit :"))
     if x1 == 0:
-        shutdown([], dongle_1= Hub_Input1_Dongle, dongle_2=Hub_Output_Dongle)
+        shutdown([], dongle_1=Hub_Input1_Dongle, dongle_2=Hub_Output_Dongle)
         sys.exit()
 
     # Disable on_device_found so that the other adapter can use it.
@@ -710,9 +715,8 @@ def main():
     # ***************************
     # ***  Clean up devices   ***
     # ___________________________
-    shutdown([], dongle_1= Hub_Input1_Dongle, dongle_2=Hub_Output_Dongle)
+    shutdown([], dongle_1=Hub_Input1_Dongle, dongle_2=Hub_Output_Dongle)
     print("End of line")
-
 
 
 if __name__ == '__main__':

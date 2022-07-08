@@ -50,8 +50,8 @@ AGENT_MANAGER        = 'org.bluez.AgentManager1'
 # ********************
 #    Dongle Objects
 # --------------------
-Hub_Output_Dongle = None
-Hub_Input1_Dongle = None
+# Hub_Output_Dongle = None
+# Hub_Input1_Dongle = None
 # Hub_Input2_Dongle = None
 # Pi_Bt_Dongle      = None
 
@@ -60,10 +60,10 @@ DBusStragglers = list()
 bus = dbus.SystemBus()
 
 class DeviceAndProperties:
-    def __init__(self, deviceObj, properties):
+    def __init__(self, deviceObj, properties, props_iface):
         self.deviceObj = deviceObj
         self.properties = properties
-
+        self.props_iface = props_iface
 
 class HubDongle:
     def __init__(self,lock ,mac_address: str ):
@@ -153,11 +153,12 @@ class HubDongle:
         except:
             pass    # means it was on or some other issue.
 
-    def pair_and_connect(self, found_device):
+    def pair_and_connect(self, device_and_props):
         """
         @info : Pair and Connect to a found device.
         @param : device object
         """
+        found_device = device_and_props.deviceObj
         if found_device:
             pairResultError = True
             try:
@@ -169,11 +170,19 @@ class HubDongle:
                 return 0
 
             print("Device paired.")
+
+            trustResultError = True
+            try:
+                trustResultError = device_and_props.props_iface.Set("org.bluez.Device1", "Trusted", True)
+            except Exception as ee:
+                print(ee)
+                print("Failed to trust")
+
             connectResultError = True
             try:
                 connectResultError = found_device.Connect()
-            except Exception as ee:
-                connectResultError = connect_exception_handler(ee)
+            except Exception as eee:
+                connectResultError = connect_exception_handler(eee)
             if connectResultError:
                 print("Connecting Failed.")
                 return 0
@@ -223,7 +232,7 @@ class HubDongle:
                 props_iface = dbus.Interface(obj, 'org.freedesktop.DBus.Properties')
                 properties = props_iface.GetAll("org.bluez.Device1")
                 device_itself = dbus.Interface(obj, "org.bluez.Device1")
-                device_and_properties = DeviceAndProperties(device_itself, properties)
+                device_and_properties = DeviceAndProperties(device_itself, properties, props_iface)
                 self.device_list.append(device_and_properties)
 
         # Iterate through devices looking for device with a name attribute.
@@ -253,7 +262,7 @@ class HubDongle:
         else:
             try:
                 target = self.usable_devices[selection - 1]
-                self.pair_and_connect(target.deviceObj)
+                self.pair_and_connect(target)
             except:
                 pass
 
@@ -287,7 +296,7 @@ class HubDongle:
         else:
             try:
                 target = self.usable_devices[selection-1]
-                self.pair_and_connect(target.deviceObj)
+                self.pair_and_connect(target)
             except:
                 pass
 

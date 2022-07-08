@@ -1,0 +1,555 @@
+dbus-monitor: unable to enable new-style monitoring: org.freedesktop.DBus.Error.AccessDenied: "Rejected send message, 1 matched rules; type="method_call", sender=":1.168" (uid=1000 pid=6739 comm="dbus-monitor --system ") interface="org.freedesktop.DBus.Monitoring" member="BecomeMonitor" error name="(unset)" requested_reply="0" destination="org.freedesktop.DBus" (bus)". Falling back to eavesdropping.
+signal time=1656175590.562660 sender=org.freedesktop.DBus -> destination=:1.168 serial=2 path=/org/freedesktop/DBus; interface=org.freedesktop.DBus; member=NameAcquired
+   string ":1.168"
+signal time=1656175594.853491 sender=:1.4 -> destination=(null destination) serial=2814 path=/org/freedesktop/systemd1; interface=org.freedesktop.systemd1.Manager; member=UnitNew
+   string "sys-devices-platform-scb-fd500000.pcie-pci0000:00-0000:00:00.0-0000:01:00.0-usb1-1\x2d1-1\x2d1.1-1\x2d1.1:1.0-bluetooth-hci0-hci0:73.device"
+   object path "/org/freedesktop/systemd1/unit/sys_2ddevices_2dplatform_2dscb_2dfd500000_2epcie_2dpci0000_3a00_2d0000_3a00_3a00_2e0_2d0000_3a01_3a00_2e0_2dusb1_2d1_5cx2d1_2d1_5cx2d1_2e1_2d1_5cx2d1_2e1_3a1_2e0_2dbluetooth_2dhci0_2dhci0_3a73_2edevice"
+signal time=1656175594.853773 sender=:1.4 -> destination=(null destination) serial=2815 path=/org/freedesktop/systemd1; interface=org.freedesktop.systemd1.Manager; member=UnitNew
+   string "sys-subsystem-bluetooth-devices-hci0:73.device"
+   object path "/org/freedesktop/systemd1/unit/sys_2dsubsystem_2dbluetooth_2ddevices_2dhci0_3a73_2edevice"
+signal time=1656175594.942161 sender=:1.121 -> destination=(null destination) serial=2648 path=/org/bluez/hci0/dev_F0_6E_0B_D3_BA_44; interface=org.freedesktop.DBus.Properties; member=PropertiesChanged
+   string "org.bluez.Device1"
+   array [
+      dict entry(
+         string "Connected"
+         variant             boolean true
+      )
+   ]
+   array [
+   ]
+signal time=1656175595.008764 sender=:1.121 -> destination=(null destination) serial=2649 path=/org/bluez/hci0/dev_F0_6E_0B_D3_BA_44; interface=org.freedesktop.DBus.Properties; member=PropertiesChanged
+   string "org.bluez.Device1"
+   array [
+      dict entry(
+         string "Modalias"
+         variant             string "bluetooth:v0006p0001d0A00"
+      )
+   ]
+   array [
+   ]
+signal time=1656175595.120226 sender=:1.121 -> destination=(null destination) serial=2650 path=/; interface=org.freedesktop.DBus.ObjectManager; member=InterfacesAdded
+   object path "/org/bluez/hci0/dev_F0_6E_0B_D3_BA_44"
+   array [
+      dict entry(
+         string "org.bluez.Network1"
+         array [
+            dict entry(
+               string "Connected"
+               variant                   boolean false
+            )
+         ]
+      )
+      dict entry(
+         string "org.bluez.MediaControl1"
+         array [
+            dict entry(
+               string "Connected"
+               variant                   boolean false
+            )
+         ]
+      )
+   ]
+signal time=1656175595.120661 sender=:1.121 -> destination=(null destination) serial=2651 path=/org/bluez/hci0/dev_F0_6E_0B_D3_BA_44; interface=org.freedesktop.DBus.Properties; member=PropertiesChanged
+   string "org.bluez.Device1"
+   array [
+      dict entry(
+         string "UUIDs"
+         variant             array [
+               string "00001000-0000-1000-8000-00805f9b34fb"
+               string "0000110a-0000-1000-8000-00805f9b34fb"
+               string "0000110b-0000-1000-8000-00805f9b34fb"
+               string "0000110c-0000-1000-8000-00805f9b34fb"
+               string "0000110e-0000-1000-8000-00805f9b34fb"
+               string "00001115-0000-1000-8000-00805f9b34fb"
+               string "0000111f-0000-1000-8000-00805f9b34fb"
+               string "00001200-0000-1000-8000-00805f9b34fb"
+               string "c7f94713-891e-496a-a0e7-983a0946126e"
+            ]
+      )
+      dict entry(
+         string "ServicesResolved"
+         variant             boolean true
+      )
+   ]
+   array [
+   ]
+signal time=1656175600.260355 sender=:1.121 -> destination=(null destination) serial=2652 path=/org/bluez/hci0/dev_F0_6E_0B_D3_BA_44; interface=org.freedesktop.DBus.Properties; member=PropertiesChanged
+   string "org.bluez.Device1"
+   array [
+      dict entry(
+         string "Paired"
+         variant             boolean true
+      )
+   ]
+   array [
+   ]
+signal time=1656175600.779568 sender=:1.121 -> destination=(null destination) serial=2654 path=/; interface=org.freedesktop.DBus.ObjectManager; member=InterfacesAdded
+   object path "/org/bluez/hci0/dev_F0_6E_0B_D3_BA_44/sep52"
+   array [
+      dict entry(
+         string "org.freedesktop.DBus.Introspectable"
+         array [
+         ]
+      )
+      dict entry(
+         string "org.bluez.MediaEndpoint1"
+         array [
+            dict entry(
+               string "UUID"
+               variant                   string "0000110a-0000-1000-8000-00805f9b34fb"
+            )
+            dict entry(
+               string "Codec"
+               variant                   byte 0
+            )
+            dict entry(
+               string "Capabilities"
+               variant                   array of bytes [
+                     2b ff 02 35
+                  ]
+            )
+            dict entry(
+               string "Device"
+               variant                   object path "/org/bluez/hci0/dev_F0_6E_0B_D3_BA_44"
+            )
+            dict entry(
+               string "DelayReporting"
+               variant                   boolean true
+            )
+         ]
+      )
+      dict entry(
+         string "org.freedesktop.DBus.Properties"
+         array [
+         ]
+      )
+   ]
+signal time=1656175600.780084 sender=:1.121 -> destination=(null destination) serial=2655 path=/; interface=org.freedesktop.DBus.ObjectManager; member=InterfacesAdded
+   object path "/org/bluez/hci0/dev_F0_6E_0B_D3_BA_44/sep54"
+   array [
+      dict entry(
+         string "org.freedesktop.DBus.Introspectable"
+         array [
+         ]
+      )
+      dict entry(
+         string "org.bluez.MediaEndpoint1"
+         array [
+            dict entry(
+               string "UUID"
+               variant                   string "0000110a-0000-1000-8000-00805f9b34fb"
+            )
+            dict entry(
+               string "Codec"
+               variant                   byte 255
+            )
+            dict entry(
+               string "Capabilities"
+               variant                   array of bytes [
+                     4f 00 00 00 01 00 22
+                  ]
+            )
+            dict entry(
+               string "Device"
+               variant                   object path "/org/bluez/hci0/dev_F0_6E_0B_D3_BA_44"
+            )
+            dict entry(
+               string "DelayReporting"
+               variant                   boolean true
+            )
+         ]
+      )
+      dict entry(
+         string "org.freedesktop.DBus.Properties"
+         array [
+         ]
+      )
+   ]
+signal time=1656175600.826594 sender=:1.121 -> destination=(null destination) serial=2657 path=/; interface=org.freedesktop.DBus.ObjectManager; member=InterfacesRemoved
+   object path "/org/bluez/hci0/dev_F0_6E_0B_D3_BA_44/sep52"
+   array [
+      string "org.freedesktop.DBus.Properties"
+      string "org.freedesktop.DBus.Introspectable"
+      string "org.bluez.MediaEndpoint1"
+   ]
+signal time=1656175600.828222 sender=:1.121 -> destination=(null destination) serial=2658 path=/; interface=org.freedesktop.DBus.ObjectManager; member=InterfacesRemoved
+   object path "/org/bluez/hci0/dev_F0_6E_0B_D3_BA_44/sep54"
+   array [
+      string "org.freedesktop.DBus.Properties"
+      string "org.freedesktop.DBus.Introspectable"
+      string "org.bluez.MediaEndpoint1"
+   ]
+signal time=1656175604.021351 sender=:1.121 -> destination=(null destination) serial=2659 path=/; interface=org.freedesktop.DBus.ObjectManager; member=InterfacesAdded
+   object path "/org/bluez/hci0/dev_F0_6E_0B_D3_BA_44/player0"
+   array [
+      dict entry(
+         string "org.freedesktop.DBus.Introspectable"
+         array [
+         ]
+      )
+      dict entry(
+         string "org.bluez.MediaPlayer1"
+         array [
+            dict entry(
+               string "Position"
+               variant                   uint32 0
+            )
+            dict entry(
+               string "Device"
+               variant                   object path "/org/bluez/hci0/dev_F0_6E_0B_D3_BA_44"
+            )
+         ]
+      )
+      dict entry(
+         string "org.freedesktop.DBus.Properties"
+         array [
+         ]
+      )
+   ]
+signal time=1656175604.023925 sender=:1.121 -> destination=(null destination) serial=2660 path=/org/bluez/hci0/dev_F0_6E_0B_D3_BA_44; interface=org.freedesktop.DBus.Properties; member=PropertiesChanged
+   string "org.bluez.MediaControl1"
+   array [
+      dict entry(
+         string "Player"
+         variant             object path "/org/bluez/hci0/dev_F0_6E_0B_D3_BA_44/player0"
+      )
+      dict entry(
+         string "Connected"
+         variant             boolean true
+      )
+   ]
+   array [
+   ]
+signal time=1656175604.059832 sender=:1.121 -> destination=(null destination) serial=2661 path=/org/bluez/hci0/dev_F0_6E_0B_D3_BA_44/player0; interface=org.freedesktop.DBus.Properties; member=PropertiesChanged
+   string "org.bluez.MediaPlayer1"
+   array [
+      dict entry(
+         string "Type"
+         variant             string "Audio"
+      )
+      dict entry(
+         string "Subtype"
+         variant             string "None"
+      )
+      dict entry(
+         string "Status"
+         variant             string "stopped"
+      )
+      dict entry(
+         string "Name"
+         variant             string "Windows"
+      )
+   ]
+   array [
+   ]
+signal time=1656175604.064474 sender=:1.121 -> destination=(null destination) serial=2662 path=/org/bluez/hci0/dev_F0_6E_0B_D3_BA_44/player0; interface=org.freedesktop.DBus.Properties; member=PropertiesChanged
+   string "org.bluez.MediaPlayer1"
+   array [
+      dict entry(
+         string "Repeat"
+         variant             string "off"
+      )
+      dict entry(
+         string "Shuffle"
+         variant             string "off"
+      )
+   ]
+   array [
+   ]
+signal time=1656175604.078757 sender=:1.121 -> destination=(null destination) serial=2663 path=/org/bluez/hci0/dev_F0_6E_0B_D3_BA_44/player0; interface=org.freedesktop.DBus.Properties; member=PropertiesChanged
+   string "org.bluez.MediaPlayer1"
+   array [
+      dict entry(
+         string "Track"
+         variant             array [
+               dict entry(
+                  string "Title"
+                  variant                      string ""
+               )
+            ]
+      )
+   ]
+   array [
+   ]
+signal time=1656175604.083245 sender=:1.121 -> destination=(null destination) serial=2664 path=/org/bluez/hci0/dev_F0_6E_0B_D3_BA_44/player0; interface=org.freedesktop.DBus.Properties; member=PropertiesChanged
+   string "org.bluez.MediaPlayer1"
+   array [
+      dict entry(
+         string "Track"
+         variant             array [
+               dict entry(
+                  string "Title"
+                  variant                      string ""
+               )
+               dict entry(
+                  string "Duration"
+                  variant                      uint32 2147483647
+               )
+            ]
+      )
+   ]
+   array [
+   ]
+signal time=1656175604.084112 sender=:1.121 -> destination=(null destination) serial=2665 path=/org/bluez/hci0/dev_F0_6E_0B_D3_BA_44/player0; interface=org.freedesktop.DBus.Properties; member=PropertiesChanged
+   string "org.bluez.MediaPlayer1"
+   array [
+      dict entry(
+         string "Position"
+         variant             uint32 4294967295
+      )
+   ]
+   array [
+   ]
+signal time=1656175604.090569 sender=:1.121 -> destination=(null destination) serial=2666 path=/org/bluez/hci0/dev_F0_6E_0B_D3_BA_44/player0; interface=org.freedesktop.DBus.Properties; member=PropertiesChanged
+   string "org.bluez.MediaPlayer1"
+   array [
+      dict entry(
+         string "Position"
+         variant             uint32 4294967295
+      )
+   ]
+   array [
+   ]
+signal time=1656175610.774252 sender=:1.121 -> destination=(null destination) serial=2667 path=/; interface=org.freedesktop.DBus.ObjectManager; member=InterfacesAdded
+   object path "/org/bluez/hci0/dev_53_8E_89_89_6E_D4"
+   array [
+      dict entry(
+         string "org.freedesktop.DBus.Introspectable"
+         array [
+         ]
+      )
+      dict entry(
+         string "org.bluez.Device1"
+         array [
+            dict entry(
+               string "Address"
+               variant                   string "53:8E:89:89:6E:D4"
+            )
+            dict entry(
+               string "AddressType"
+               variant                   string "random"
+            )
+            dict entry(
+               string "Alias"
+               variant                   string "53-8E-89-89-6E-D4"
+            )
+            dict entry(
+               string "Paired"
+               variant                   boolean false
+            )
+            dict entry(
+               string "Trusted"
+               variant                   boolean false
+            )
+            dict entry(
+               string "Blocked"
+               variant                   boolean false
+            )
+            dict entry(
+               string "LegacyPairing"
+               variant                   boolean false
+            )
+            dict entry(
+               string "RSSI"
+               variant                   int16 -89
+            )
+            dict entry(
+               string "Connected"
+               variant                   boolean false
+            )
+            dict entry(
+               string "UUIDs"
+               variant                   array [
+                  ]
+            )
+            dict entry(
+               string "Adapter"
+               variant                   object path "/org/bluez/hci0"
+            )
+            dict entry(
+               string "ManufacturerData"
+               variant                   array [
+                     dict entry(
+                        uint16 76
+                        variant                            array of bytes [
+                              10 05 2c 18 af 7e e3
+                           ]
+                     )
+                  ]
+            )
+            dict entry(
+               string "TxPower"
+               variant                   int16 24
+            )
+            dict entry(
+               string "ServicesResolved"
+               variant                   boolean false
+            )
+         ]
+      )
+      dict entry(
+         string "org.freedesktop.DBus.Properties"
+         array [
+         ]
+      )
+   ]
+signal time=1656175627.135576 sender=:1.121 -> destination=(null destination) serial=2668 path=/org/bluez/hci0/dev_F0_6E_0B_D3_BA_44; interface=org.freedesktop.DBus.Properties; member=PropertiesChanged
+   string "org.bluez.Device1"
+   array [
+      dict entry(
+         string "RSSI"
+         variant             int16 -84
+      )
+   ]
+   array [
+   ]
+signal time=1656175627.215869 sender=:1.121 -> destination=(null destination) serial=2669 path=/org/bluez/hci0/dev_F0_6E_0B_D3_BA_44; interface=org.freedesktop.DBus.Properties; member=PropertiesChanged
+   string "org.bluez.Device1"
+   array [
+      dict entry(
+         string "RSSI"
+         variant             int16 -47
+      )
+   ]
+   array [
+   ]
+signal time=1656175627.584516 sender=:1.121 -> destination=(null destination) serial=2670 path=/org/bluez/hci0/dev_F0_6E_0B_D3_BA_44; interface=org.freedesktop.DBus.Properties; member=PropertiesChanged
+   string "org.bluez.Device1"
+   array [
+      dict entry(
+         string "RSSI"
+         variant             int16 -59
+      )
+   ]
+   array [
+   ]
+signal time=1656175627.693980 sender=:1.121 -> destination=(null destination) serial=2671 path=/; interface=org.freedesktop.DBus.ObjectManager; member=InterfacesAdded
+   object path "/org/bluez/hci0/dev_A8_54_B2_1A_82_C7"
+   array [
+      dict entry(
+         string "org.freedesktop.DBus.Introspectable"
+         array [
+         ]
+      )
+      dict entry(
+         string "org.bluez.Device1"
+         array [
+            dict entry(
+               string "Address"
+               variant                   string "A8:54:B2:1A:82:C7"
+            )
+            dict entry(
+               string "AddressType"
+               variant                   string "public"
+            )
+            dict entry(
+               string "Name"
+               variant                   string "Panasonic Viera"
+            )
+            dict entry(
+               string "Alias"
+               variant                   string "Panasonic Viera"
+            )
+            dict entry(
+               string "Class"
+               variant                   uint32 1084
+            )
+            dict entry(
+               string "Icon"
+               variant                   string "audio-card"
+            )
+            dict entry(
+               string "Paired"
+               variant                   boolean false
+            )
+            dict entry(
+               string "Trusted"
+               variant                   boolean false
+            )
+            dict entry(
+               string "Blocked"
+               variant                   boolean false
+            )
+            dict entry(
+               string "LegacyPairing"
+               variant                   boolean false
+            )
+            dict entry(
+               string "RSSI"
+               variant                   int16 -80
+            )
+            dict entry(
+               string "Connected"
+               variant                   boolean false
+            )
+            dict entry(
+               string "UUIDs"
+               variant                   array [
+                  ]
+            )
+            dict entry(
+               string "Adapter"
+               variant                   object path "/org/bluez/hci0"
+            )
+            dict entry(
+               string "ServicesResolved"
+               variant                   boolean false
+            )
+         ]
+      )
+      dict entry(
+         string "org.freedesktop.DBus.Properties"
+         array [
+         ]
+      )
+   ]
+signal time=1656175627.826544 sender=:1.121 -> destination=(null destination) serial=2672 path=/org/bluez/hci0/dev_F0_6E_0B_D3_BA_44; interface=org.freedesktop.DBus.Properties; member=PropertiesChanged
+   string "org.bluez.Device1"
+   array [
+      dict entry(
+         string "RSSI"
+         variant             int16 -50
+      )
+   ]
+   array [
+   ]
+signal time=1656175643.671448 sender=:1.121 -> destination=(null destination) serial=2673 path=/org/bluez/hci0/dev_F0_6E_0B_D3_BA_44; interface=org.freedesktop.DBus.Properties; member=PropertiesChanged
+   string "org.bluez.Device1"
+   array [
+      dict entry(
+         string "RSSI"
+         variant             int16 -59
+      )
+   ]
+   array [
+   ]
+signal time=1656175643.823279 sender=:1.121 -> destination=(null destination) serial=2674 path=/org/bluez/hci0/dev_F0_6E_0B_D3_BA_44; interface=org.freedesktop.DBus.Properties; member=PropertiesChanged
+   string "org.bluez.Device1"
+   array [
+      dict entry(
+         string "RSSI"
+         variant             int16 -49
+      )
+   ]
+   array [
+   ]
+signal time=1656175646.217613 sender=:1.121 -> destination=(null destination) serial=2675 path=/org/bluez/hci0/dev_F0_6E_0B_D3_BA_44; interface=org.freedesktop.DBus.Properties; member=PropertiesChanged
+   string "org.bluez.Device1"
+   array [
+      dict entry(
+         string "RSSI"
+         variant             int16 -59
+      )
+   ]
+   array [
+   ]
+signal time=1656175647.668048 sender=:1.121 -> destination=(null destination) serial=2676 path=/org/bluez/hci0/dev_F0_6E_0B_D3_BA_44; interface=org.freedesktop.DBus.Properties; member=PropertiesChanged
+   string "org.bluez.Device1"
+   array [
+      dict entry(
+         string "RSSI"
+         variant             int16 -50
+      )
+   ]
+   array [
+   ]

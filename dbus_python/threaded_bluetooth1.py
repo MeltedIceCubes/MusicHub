@@ -145,6 +145,8 @@ class Controller_Class:
             Executer.append(selected_command,D1_Lock,data, command_priority)
 
             time.sleep(0.2)
+        Bluetooth.shutdown([], dongle_1=Hub_Dongle1, dongle_2=Hub_Dongle2, dongle_3 =Hub_Dongle3)
+        print("End of line")
 
 def InitializeAllDongles():
     global Hub_Dongle1,Hub_Dongle2,Hub_Dongle3
@@ -232,7 +234,7 @@ def Scan_on(lock, data):
         print("Scan on")
         Dongle_Selection.discoverable_on()
         try :
-            Dongle_Selection.Dongle.nearby_discovery(timeout=5) #Start Scan.
+            Dongle_Selection.Dongle.nearby_discovery(timeout=15) #Start Scan.
         except:
             pass
         Dongle_Selection.find_devices_in_adapter() #List pairable devices.
