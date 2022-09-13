@@ -138,7 +138,6 @@ class Controller_Class:
             if x == "R": # Refresh Menu
                 continue
 
-            # TODO : ADD THREAD CANCEL FLAG
 
             # Get command from the input choice.
             selected_command, data, command_priority= Menu.ParseSelection(self.CurrMenu,x)
@@ -234,7 +233,7 @@ def Scan_on(lock, data):
         print("Scan on")
         Dongle_Selection.discoverable_on()
         try :
-            Dongle_Selection.Dongle.nearby_discovery(timeout=15) #Start Scan.
+            Dongle_Selection.Dongle.nearby_discovery(timeout=5) #Start Scan.
         except:
             pass
         Dongle_Selection.find_devices_in_adapter() #List pairable devices.
@@ -429,12 +428,9 @@ def main():
     Controller_Thread.join()
     Executer_Thread.join()
 
+
+
 if __name__ == "__main__":
     print("Starting Program")
     main()
     print("Ending Program")
-
-
-#TODO : Implement Controller blocker.
-#        Ex. Scan result selection does cannot get input.
-#                - Controller gets the input before "find_devices_in_adapter" can get it

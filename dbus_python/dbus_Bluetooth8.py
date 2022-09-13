@@ -646,6 +646,7 @@ def shutdown(whiteList, dongle_1 = None, dongle_2 = None, dongle_3 = None):
 
     for dongle in dongle_list:
         # Remove stragglers except the ones that are White-Listed
+        print("Clearing %s"%dongle.Dongle.alias)
         remove_stragglers(whiteList, dongle.Dongle)
         
         # Power off

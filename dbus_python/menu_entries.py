@@ -28,9 +28,9 @@ Dongle Select/Dongle#/MediaControls:
         - Back to function select
 """
 Dongle_select_msg = ['Select Dongle : ',
-                     '  1 : Dongle 1',
-                     '  2 : Dongle 2',
-                     '  3 : Dongle 3']
+                     '  1 : Input 1',
+                     '  2 : Input 2',
+                     '  3 : Output']
 Dongle_select_choices = ['1','2','3']
 Dongle_select_priority = [1,1,1]
 # Dongle Select/Dongle# :
