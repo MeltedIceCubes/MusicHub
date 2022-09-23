@@ -1,0 +1,3 @@
+Bob,/org/bluez/hci2/dev_AA_65_A6_E5_F0_5F
+Kye,/org/bluez/hci1/dev_BB_65_A6_E5_F0_69
+Daria,/org/bluez/hci1/dev_CC_65_BB_E5_F0_5F

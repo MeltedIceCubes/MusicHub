@@ -12,9 +12,18 @@ from xml.etree import ElementTree
 import re
 import sys
 import threading
-import menu_list2 as Menu
+import menu_list3 as Menu
 import menu_entries
-import dbus_Bluetooth8 as Bluetooth
+import dbus_Bluetooth9 as Bluetooth
+import logging
+logging.basicConfig(format = '%(message)s',level = logging.DEBUG)
+
+
+import socket
+HOST = "127.0.0.1"  # Standard loopback interface address (localhost)
+PORT = 65432  # Port to listen on (non-privileged ports are > 1023)
+
+SocketOutput = None
 
 # *****************************
 #      Class Definitions
@@ -119,12 +128,12 @@ class Executer_Class:
 
 class Controller_Class:
     def __init__(self):
-        print("Press Z at any time to quit\n"
+        logging.debug("\nPress Z at any time to quit\n"
               "Press R to refresh menu\n\n")
         self.CurrMenu = None
 
     def GetInput(self):
-        global EXIT_PROGRAM
+        global EXIT_PROGRAM, Dongle_Selection
         while not EXIT_PROGRAM:
             while Ctrl_Lock.locked():
                 pass
@@ -140,11 +149,23 @@ class Controller_Class:
 
             # Get command from the input choice.
             selected_command, data, command_priority= Menu.ParseSelection(self.CurrMenu,x)
-            Executer.append(selected_command,D1_Lock,data, command_priority)
+
+            if Dongle_Selection == Hub_Dongle1:
+                task_lock = D1_Lock
+            elif Dongle_Selection == Hub_Dongle2:
+                task_lock = D2_Lock
+            elif Dongle_Selection == Hub_Dongle3:
+                task_lock = D3_Lock
+            else: # Need a defualt or it will crash.
+                task_lock = D1_Lock
+
+            Executer.append(selected_command,task_lock,data, command_priority)
 
             time.sleep(0.2)
-        Bluetooth.shutdown([], dongle_1=Hub_Dongle1, dongle_2=Hub_Dongle2, dongle_3 =Hub_Dongle3)
-        print("End of line")
+
+        # Shutdown
+        Bluetooth.shutdown([], dongle_1=Hub_Dongle1, dongle_2=Hub_Dongle2, dongle_3=Hub_Dongle3)
+        SocketOutput.sendall(b'End of line')
 
 def InitializeAllDongles():
     global Hub_Dongle1,Hub_Dongle2,Hub_Dongle3
@@ -158,7 +179,8 @@ def select_dongle1(lock,data):
     data = None
     lock.acquire()
     Dongle_Selection = Hub_Dongle1
-    print("Dongle 1 selected. Address = %s" %str(id(Dongle_Selection)))
+    SocketOutput.sendall(b'Selection:Dongle1')
+    logging.debug("Dongle 1 selected. Address = %s" %str(id(Dongle_Selection)))
     MenuTo_FunctionSelection()
     lock.release()
 def select_dongle2(lock,data):
@@ -166,7 +188,8 @@ def select_dongle2(lock,data):
     data = None
     lock.acquire()
     Dongle_Selection = Hub_Dongle2
-    print("Dongle 2 selected. Address = %s" % str(id(Dongle_Selection)))
+    SocketOutput.sendall(b'Selection:Dongle2')
+    logging.debug("Dongle 2 selected. Address = %s" %str(id(Dongle_Selection)))
     MenuTo_FunctionSelection()
     lock.release()
 def select_dongle3(lock,data):
@@ -174,32 +197,33 @@ def select_dongle3(lock,data):
     data = None
     lock.acquire()
     Dongle_Selection = Hub_Dongle3
-    print("Dongle 3 selected. Address = %s" % str(id(Dongle_Selection)))
+    SocketOutput.sendall(b'Selection:Dongle3')
+    logging.debug("Dongle 3 selected. Address = %s" %str(id(Dongle_Selection)))
     MenuTo_FunctionSelection()
     lock.release()
 
 def Power_control(lock, data):
     lock.acquire()
     data = None
-    print("Power toggle")
+    logging.debug("Power toggle")
     MenuTo_PowerSelection()
     lock.release()
 def Scan_control(lock, data):
     lock.acquire()
     data = None
-    print("Scan toggle")
+    logging.debug("Scan toggle")
     MenuTo_ScanSelection()
     lock.release()
 def Media_controls(lock, data):
     lock.acquire()
     data = None
-    print("Media Controls")
+    logging.debug("Media Controls")
     MenuTo_MediaSelection()
     lock.release()
 def BackTo_DongleSelect(lock, data):
     lock.acquire()
     data = None
-    print("Back to dongle select")
+    logging.debug("Back to dongle select")
     MenuTo_DongleSelection()
     lock.release()
 
@@ -209,18 +233,16 @@ def Power_on(lock, data):
     Dongle_Selection.power_on()
     data = None
     # print("Power on")
+    logging.debug("Back to Function Select")
+    MenuTo_FunctionSelection()
     lock.release()
-def Power_off(lock, data):
+def Power_backToFunctions(lock, data):
+    # Combined power off and back button
     lock.acquire()
     global Dongle_Selection
     Dongle_Selection.power_off()
     data = None
-    # print("Power off")
-    lock.release()
-def Power_backToFunctions(lock, data):
-    lock.acquire()
-    data = None
-    print("Back to Function Select")
+    logging.debug("Back to Function Select")
     MenuTo_FunctionSelection()
     lock.release()
 
@@ -229,7 +251,7 @@ def Scan_on(lock, data):
     global Dongle_Selection, Ctrl_Lock
     if Dongle_Selection.Dongle.powered:
         Ctrl_Lock.acquire()
-        print("Scan on")
+        logging.debug("Scan on")
         Dongle_Selection.discoverable_on()
         try :
             Dongle_Selection.Dongle.nearby_discovery(timeout=5) #Start Scan.
@@ -237,24 +259,21 @@ def Scan_on(lock, data):
             pass
         Dongle_Selection.find_devices_in_adapter() #List pairable devices.
         Dongle_Selection.get_media_controls() # Get media controls.
+        Dongle_Selection.get_Alias()
         Dongle_Selection.discoverable_off()
     else:
-        print("Power is off. Can\'t start scan")
+        logging.debug("Power is off. Can\'t start scan")
     data = None
-    print("Scan stopped")
+    logging.debug("Scan stopped")
     if Ctrl_Lock.locked():
         Ctrl_Lock.release()
     MenuTo_ScanSelection()
     lock.release()
-def Scan_off(lock, data):
-    lock.acquire()
-    data = None
-    print("Scan off")
-    lock.release()
+
 def Scan_backToFunctions(lock, data):
     lock.acquire()
     data = None
-    print("Back to Function Select")
+    logging.debug("Back to Function Select")
     MenuTo_FunctionSelection()
     lock.release()
 
@@ -262,43 +281,43 @@ def Media_Play(lock,data):
     lock.acquire()
     global Dongle_Selection
     Dongle_Selection.MediaControl.MediaController.Play()
-    print("Play")
+    logging.debug("Play")
     lock.release()
 def Media_Pause(lock,data):
     lock.acquire()
     global Dongle_Selection
     Dongle_Selection.MediaControl.MediaController.Pause()
-    print("Pause")
+    logging.debug("Pause")
     lock.release()
 def Media_Prev(lock,data):
     lock.acquire()
     global Dongle_Selection
     Dongle_Selection.MediaControl.MediaController.Previous()
-    print("Prev")
+    logging.debug("Prev")
     lock.release()
 def Media_Next(lock,data):
     lock.acquire()
     global Dongle_Selection
     Dongle_Selection.MediaControl.MediaController.Next()
-    print("Next")
+    logging.debug("Next")
     lock.release()
 def Media_VolDn(lock,data):
     lock.acquire()
     global Dongle_Selection
-    print("VolDn")
+    logging.debug("VolDn")
     volume = Dongle_Selection.MediaControl.VolumeDown()
-    print(volume)
+    logging.debug(volume)
     lock.release()
 def Media_VolUp(lock, data):
     lock.acquire()
     global Dongle_Selection
-    print("VolUp")
+    logging.debug("VolUp")
     volume = Dongle_Selection.MediaControl.VolumeUp()
-    print(volume)
+    logging.debug(volume)
     lock.release()
 def Media_backToFunctions(lock,data):
     lock.acquire()
-    print("Back to Function Select")
+    logging.debug("Back to Function Select")
     MenuTo_FunctionSelection()
     lock.release()
 
@@ -374,7 +393,7 @@ Power_menu = Menu.Menu_listing(
     menu_entries.Power_msg,
     menu_entries.Power_select,
     menu_entries.Power_priority,
-    [Power_on, Power_off, Power_backToFunctions],
+    [Power_on, Power_backToFunctions],
     [None, None, None, None])
 def MenuTo_PowerSelection():
     global Controller
@@ -384,7 +403,7 @@ Scan_menu = Menu.Menu_listing(
     menu_entries.Scan_msg,
     menu_entries.Scan_select,
     menu_entries.Scan_priority,
-    [Scan_on, Scan_off, Scan_backToFunctions],
+    [Scan_on, Scan_backToFunctions],
     [None, None, None])
 def MenuTo_ScanSelection():
     global Controller
@@ -407,29 +426,34 @@ def MenuTo_MediaSelection():
     Controller.CurrMenu = Media_menu
 
 def main():
-    global Hub_Dongle1,Dongle_Selection
 
-    InitializeAllDongles()
+    global Hub_Dongle1,Dongle_Selection, SocketOutput
 
-    # Just to set as default.
-    Dongle_Selection = Hub_Dongle1
+    #Set up socket for output
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as SocketOutput:
+        SocketOutput.connect((HOST,PORT))
 
-    Controller.CurrMenu = Dongle_Selection_menu
-    # Controller.CurrMenu = Function_Selection_menu
+        InitializeAllDongles()
 
-    # Set up threads
-    Controller_Thread = threading.Thread(target = Controller.GetInput)
-    Executer_Thread   = threading.Thread(target = Executer.Execution_Loop)
+        # Just to set as default.
+        Dongle_Selection = Hub_Dongle1
 
-    Controller_Thread.start()
-    Executer_Thread.start()
+        Controller.CurrMenu = Dongle_Selection_menu
+        # Controller.CurrMenu = Function_Selection_menu
 
-    Controller_Thread.join()
-    Executer_Thread.join()
+        # Set up threads
+        Controller_Thread = threading.Thread(target = Controller.GetInput)
+        Executer_Thread   = threading.Thread(target = Executer.Execution_Loop)
+
+        Controller_Thread.start()
+        Executer_Thread.start()
+
+        Controller_Thread.join()
+        Executer_Thread.join()
 
 
 
 if __name__ == "__main__":
-    print("Starting Program")
+    logging.debug("Starting Program")
     main()
-    print("Ending Program")
+    logging.debug("Ending Program")

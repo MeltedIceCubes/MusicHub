@@ -45,33 +45,38 @@ Dongle_select_priority = [1,1,1]
 #         - back
 #     - Back to dongle select
 Action_select_msg = ['Action :',
-                     '  1 : Power',
-                     '  2 : Scan',
-                     '  3 : Media Controls',
-                     '  0 : Back']
+                     '  1 : Power (B1-A)',
+                     '  2 : Connection (B2-A)',
+                     '  3 : Media  (B3-A)',
+                     '  0 : Back (B5-A)']
 Action_select_choices = ['1','2','3','0']
 Action_select_priority = [1,1,1,1]
 
 Power_msg = ['Power Mode :',
                     '  1 : On',
-                    '  2 : Off',
                     '  0 : Back']
-Power_select = ['1','2','0']
-Power_priority = [1,1,1]
+Power_select = ['1','0']
+Power_priority = [1,1]
+
+Connection_msg = ['Connection:',
+                        '  1 : Scan'
+                        '  2 : Devices'
+                        '  0 : Back']
+Connection_select = ['1','2', '0']
+
 
 Scan_msg = ['Scan Mode:',
             '  1 : On',
-            '  2 : Off',
             '  0 : Back']
-Scan_select = ['1','2','0']
-Scan_priority = [1,1,1]
+Scan_select = ['1','0']
+Scan_priority = [1,1]
 
-Discoverable_msg = ["Discoverable: ",
-                    "  1 : On",
-                    "  2 : Off",
-                    "  0 : Back"]
-Discoverable_select = ['1','2','0']
-Discoverable_priority = [1,1,1]
+# Discoverable_msg = ["Discoverable: ",
+#                     "  1 : On",
+#                     "  2 : Off",
+#                     "  0 : Back"]
+# Discoverable_select = ['1','2','0']
+# Discoverable_priority = [1,1,1]
 
 Media_control_msg = ['Media Controls:',
                      '  1 : Play',
