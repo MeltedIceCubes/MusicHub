@@ -17,6 +17,8 @@ from xml.etree import ElementTree
 import re
 import sys
 import logging
+# sys.path.insert(0, '/home/pi/Desktop/GitHub/MusicHub/cust_bluezero')
+# import adapter, device
 logging.basicConfig(format = '%(message)s',level = logging.DEBUG)
 
 # *****************************

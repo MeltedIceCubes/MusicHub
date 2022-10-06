@@ -45,10 +45,10 @@ Dongle_select_priority = [1,1,1]
 #         - back
 #     - Back to dongle select
 Action_select_msg = ['Action :',
-                     '  1 : Power (B1-A)',
-                     '  2 : Connection (B2-A)',
-                     '  3 : Media  (B3-A)',
-                     '  0 : Back (B5-A)']
+                     '  1 : Power',
+                     '  2 : Connection',
+                     '  3 : Media',
+                     '  0 : Back']
 Action_select_choices = ['1','2','3','0']
 Action_select_priority = [1,1,1,1]
 

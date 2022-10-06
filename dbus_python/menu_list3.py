@@ -20,12 +20,13 @@ CANCEL_FLAG = False
 
 
 class Menu_listing:
-    def __init__(self, msg, select, priority, functions, data):
+    def __init__(self, msg, select, priority, functions, data, state):
         self.message    = msg
         self.options    = select
         self.priority   = priority
         self.functions  = functions
         self.data       = data
+        self.displayState = state
 
     def PrintMenu(self):
         for i in self.message:

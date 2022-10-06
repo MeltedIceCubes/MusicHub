@@ -120,7 +120,6 @@ def ExitChecker():
         message = input("Press enter to quit\n\n")
         if message == "Z":
             EXIT_BUTTON = True
-    pass
 
 
 def main():

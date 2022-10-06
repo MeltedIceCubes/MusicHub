@@ -144,11 +144,11 @@ class Controller_Class:
 
             x = input()
 
-            if x =="Z": # Exit condition
-                EXIT_PROGRAM = True
-                break
-            if x == "R": # Refresh Menu
-                continue
+            # if x =="Z": # Exit condition
+            #     EXIT_PROGRAM = True
+            #     break
+            # if x == "R": # Refresh Menu
+            #     continue
 
             # Get command from the input choice.
             selected_command, data, command_priority= Menu.ParseSelection(self.CurrMenu,x)
@@ -439,6 +439,14 @@ def MenuTo_MediaSelection():
     global Controller
     Controller.CurrMenu = Media_menu
 
+def ExitChecker():
+    global EXIT_PROGRAM
+    while not EXIT_PROGRAM:
+        message = input("Press enter to quit\n\n")
+        if message == "Z":
+            EXIT_PROGRAM = True
+            break
+
 def main():
 
     global Hub_Dongle1,Dongle_Selection, SocketOutput
@@ -456,14 +464,17 @@ def main():
         # Controller.CurrMenu = Function_Selection_menu
 
         # Set up threads
-        Controller_Thread = threading.Thread(target = Controller.GetInput)
-        Executer_Thread   = threading.Thread(target = Executer.Execution_Loop)
+        Controller_Thread  = threading.Thread(target = Controller.GetInput)
+        Executer_Thread    = threading.Thread(target = Executer.Execution_Loop)
+        ExitChecker_Thread = threading.Thread(target = ExitChecker)
 
         Controller_Thread.start()
         Executer_Thread.start()
+        ExitChecker_Thread.start()
 
         Controller_Thread.join()
         Executer_Thread.join()
+        ExitChecker_Threat.join()
 
 
 
