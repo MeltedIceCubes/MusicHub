@@ -31,12 +31,15 @@ class Menu_listing:
     def PrintMenu(self):
         for i in self.message:
             logging.debug("%s" %i)
+    def PrintSocketMenu(self,socketObj):
+        for i in self.message:
+            socketObj.sendall(i)
 
 
 # *************************************
 #    ***     Message Parsing     ***
 # _____________________________________
-def ParseSelection(menu_obj: Menu_listing, selection) -> list:
+def ParseSelection(menu_obj: Menu_listing, selection):
     """ Return : [index of selection]
                  None if failed. """
     sel_index = None
@@ -60,6 +63,27 @@ def ParseSelection(menu_obj: Menu_listing, selection) -> list:
     else:
         logging.debug("No input")
         return None, None, None
+
+def ButtonToSelection(menu_obj:Menu_listing, selection):
+    sel_index = None
+    if selection:
+        try:
+            sel_index = menu_obj.options.index(selection)
+        except:
+            logging.debug("Invalid selection")
+            return None, None, None
+        try:  # Get the command that the index points to.
+            selected_function = menu_obj.functions[sel_index]
+            function_priority = menu_obj.priority[sel_index]
+            function_data = menu_obj.data[sel_index]
+            return selected_function, function_data, function_priority
+        except:
+            logging.debug("No command with that input")
+            return None, None, None
+    else:
+        # logging.debug("No input")
+        return None, None, None
+
 
 # class Cancel_Event
 if __name__ == "__main__":

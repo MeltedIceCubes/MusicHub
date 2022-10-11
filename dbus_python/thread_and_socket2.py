@@ -13,9 +13,11 @@ import re
 import sys
 import threading
 import menu_list3 as Menu
-import menu_entries
+import menu_entries2 as  menu_entries
 import dbus_Bluetooth9 as Bluetooth
 import logging
+from gpio import buttons_polling2
+
 logging.basicConfig(format = '%(message)s',level = logging.DEBUG)
 
 
@@ -81,6 +83,9 @@ class Executer_Class:
     def append(self, function, lock_to_use, data, priority):
         global Dongle_Selection, Hub_Dongle1, Hub_Dongle2, Hub_Dongle3
 
+        if function == None:
+            return None
+
         func_init = function
 
         # Set up thread to be run from queue.
@@ -131,27 +136,26 @@ class Controller_Class:
         logging.debug("\nPress Z at any time to quit\n"
               "Press R to refresh menu\n\n")
         self.CurrMenu = None
+        self.ButtonScan = buttons_polling2.ButtonScanObj()
 
     def GetInput(self):
         global EXIT_PROGRAM, Dongle_Selection
+        x = "Z"
+        self.CurrMenu.PrintMenu()
         while not EXIT_PROGRAM:
             while Ctrl_Lock.locked():
                 pass
-            self.CurrMenu.PrintMenu()
-            SocketOutput.sendall(self.CurrMenu.displayState)
 
+            # SocketOutput.sendall(self.CurrMenu.displayState)
 
-
-            x = input()
-
-            # if x =="Z": # Exit condition
-            #     EXIT_PROGRAM = True
-            #     break
-            # if x == "R": # Refresh Menu
-            #     continue
+            self.ButtonScan.PollingManager.ButtonPoll()
+            if self.ButtonScan.ButtonManager.ButtonNewOutput == True:
+                x = self.ButtonScan.ButtonManager.ButtonSingleOutput
+            else:
+                x = None
 
             # Get command from the input choice.
-            selected_command, data, command_priority= Menu.ParseSelection(self.CurrMenu,x)
+            selected_command, data, command_priority= Menu.ButtonToSelection(self.CurrMenu,x)
 
             if Dongle_Selection == Hub_Dongle1:
                 task_lock = D1_Lock
@@ -164,7 +168,10 @@ class Controller_Class:
 
             Executer.append(selected_command,task_lock,data, command_priority)
 
-            time.sleep(0.2)
+            # TODO : Remove Later
+            time.sleep(0.1)
+            if x != None:
+                self.CurrMenu.PrintSocketMenu(SocketOutput)
 
         # Shutdown
         Bluetooth.shutdown([], dongle_1=Hub_Dongle1, dongle_2=Hub_Dongle2, dongle_3=Hub_Dongle3)
@@ -183,7 +190,8 @@ def select_dongle1(lock,data):
     lock.acquire()
     Dongle_Selection = Hub_Dongle1
     SocketOutput.sendall(b'Selection:Dongle1')
-    logging.debug("Dongle 1 selected. Address = %s" %str(id(Dongle_Selection)))
+    # logging.debug("Dongle 1 selected. Address = %s" %str(id(Dongle_Selection)))
+    SocketOutput.sendall(b"Dongle 1 selected.")
     MenuTo_FunctionSelection()
     lock.release()
 def select_dongle2(lock,data):
@@ -192,7 +200,8 @@ def select_dongle2(lock,data):
     lock.acquire()
     Dongle_Selection = Hub_Dongle2
     SocketOutput.sendall(b'Selection:Dongle2')
-    logging.debug("Dongle 2 selected. Address = %s" %str(id(Dongle_Selection)))
+    # logging.debug("Dongle 2 selected. Address = %s" %str(id(Dongle_Selection)))
+    SocketOutput.sendall(b"Dongle 2 selected.")
     MenuTo_FunctionSelection()
     lock.release()
 def select_dongle3(lock,data):
@@ -201,32 +210,38 @@ def select_dongle3(lock,data):
     lock.acquire()
     Dongle_Selection = Hub_Dongle3
     SocketOutput.sendall(b'Selection:Dongle3')
-    logging.debug("Dongle 3 selected. Address = %s" %str(id(Dongle_Selection)))
+    # logging.debug("Dongle 3 selected. Address = %s" %str(id(Dongle_Selection)))
+    SocketOutput.sendall(b"Dongle 3 selected.")
+
     MenuTo_FunctionSelection()
     lock.release()
 
 def Power_control(lock, data):
     lock.acquire()
     data = None
-    logging.debug("Power toggle")
+    # logging.debug("Power toggle")
+    SocketOutput.sendall(b"Power toggle")
     MenuTo_PowerSelection()
     lock.release()
 def Scan_control(lock, data):
     lock.acquire()
     data = None
-    logging.debug("Scan toggle")
+    # logging.debug("Scan toggle")
+    SocketOutput.sendall(b"Scan toggle")
     MenuTo_ScanSelection()
     lock.release()
 def Media_controls(lock, data):
     lock.acquire()
     data = None
-    logging.debug("Media Controls")
+    # logging.debug("Media Controls")
+    SocketOutput.sendall(b"Media Controls")
     MenuTo_MediaSelection()
     lock.release()
 def BackTo_DongleSelect(lock, data):
     lock.acquire()
     data = None
-    logging.debug("Back to dongle select")
+    # logging.debug("Back to dongle select")
+    SocketOutput.sendall(b"Back to dongle select")
     MenuTo_DongleSelection()
     lock.release()
 
@@ -236,7 +251,8 @@ def Power_on(lock, data):
     Dongle_Selection.power_on()
     data = None
     # print("Power on")
-    logging.debug("Back to Function Select")
+    # logging.debug("Back to Function Select")
+    SocketOutput.sendall(b"Back to Function Select")
     MenuTo_FunctionSelection()
     lock.release()
 def Power_backToFunctions(lock, data):
@@ -245,7 +261,8 @@ def Power_backToFunctions(lock, data):
     global Dongle_Selection
     Dongle_Selection.power_off()
     data = None
-    logging.debug("Back to Function Select")
+    # logging.debug("Back to Function Select")
+    SocketOutput.sendall(b"Back to Function Select")
     MenuTo_FunctionSelection()
     lock.release()
 
@@ -453,6 +470,7 @@ def main():
 
     #Set up socket for output
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as SocketOutput:
+        SocketOutput.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         SocketOutput.connect((HOST,PORT))
 
         InitializeAllDongles()
@@ -474,7 +492,7 @@ def main():
 
         Controller_Thread.join()
         Executer_Thread.join()
-        ExitChecker_Threat.join()
+        ExitChecker_Thread.join()
 
 
 
