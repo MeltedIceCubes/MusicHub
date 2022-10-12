@@ -9,93 +9,108 @@ def timeMS():
 DEBOUNCE_TIME = 50 # (ms)
 PRESS_TIME    = 0 # (ms)
 
-# ButtonList       = [None, None, None, None, None, None]
-# BtnPinList       = [11,   13,   15,   16,   18,   40]
-# ButtonOutputIDs  = ["B1", "B2", "B3", "B4", "B5", "EC"]
-# ButtonOutputs    = [0,    0,    0,    0,    0,    0]
-# ButtonSingleOutput = None
-# ButtonSingleOutputPrev = None
+ENC_CLK_PIN = 36
+ENC_DT_PIN = 38
 
 
-#
-# def initializeButtons():
-#     global ButtonList, BtnPinList
-#     for i in range(len(ButtonList)):
-#         ButtonList[i] = ButtonObj(BtnPinList[i])
-
-class ButtonManagerObj:
-    ButtonNumber = 6
-
+class InputManagerObj:
     def __init__(self):
-        self.ButtonList = []
-        self.ButtonPinList     = [11, 13, 15, 16, 18, 40]
-        self.ButtonOutputIDs   = ["B1", "B2", "B3", "B4", "B5", "EC", "CW", "CCW"]
-        self.ButtonOutputs     = [0,    0,    0,    0,    0,    0,    0,    0]
-        self.ButtonOutputsPrev = [0,    0,    0,    0,    0,    0,    0,    0]
-        self.ButtonSingleOutput = None
-        self.ButtonSingleOutputPrev = None
-        self.ButtonNewOutput = False
-        for i in range(len(self.ButtonPinList)):
-            self.ButtonList.append(ButtonObj(self.ButtonPinList[i]))
-            GPIO.setup(self.ButtonPinList[i], GPIO.IN, pull_up_down = GPIO.PUD_DOWN)
+        # Ignore warning for now
+        GPIO.setwarnings(False)
 
-    def ProcessButtons(self):
-        # Iterate through buttons,
-        for i in range(len(self.ButtonOutputs)):
-            #if Output is detected,
-            if (i<5):
-                output = self.ButtonList[i].Output
+        # Use physical pin numbering
+        GPIO.setmode(GPIO.BOARD)
+
+        
+        self.Inputs = []
+        self.ButtonPinList   = [11,    13,   15,   16,   18,   40]
+        self.EncoderPinList  = [                                    36,   38]
+        self.Outputs         = [ 0,    0,    0,    0,    0,    0,    0,    0]
+        self.Prev_Outputs    = [ 0,    0,    0,    0,    0,    0,    0,    0]
+        self.OutputIDs       = ["B1", "B2", "B3", "B4", "B5", "EC", "CW", "CCW"]
+        # Initialize Buttons
+        for b in range(len(self.ButtonPinList)):
+            self.Inputs.append(ButtonObj(self.ButtonPinList[b]))
+
+        # Initialize Encoder
+        self.Inputs.append(EncoderObj(self.EncoderPinList[0],
+                                      self.EncoderPinList[1]))
+
+        self.SingleOutput = None
+        self.Prev_SingleOutput = None
+        self.NewOutput = False
+
+    def UpdateInputs(self):
+        # Update Button Inputs
+        for a in range(len(self.ButtonPinList)):
+            self.Inputs[a].Update() # Get input status
+            self.Outputs[a] = self.Inputs[a].OutputVal
+
+        #Update Encoder Input
+        index = len(self.ButtonPinList) # set the index after all the buttons
+        self.Inputs[index].Update()
+        self.Outputs[index] = self.Inputs[index].OutputVal[0] #CW
+        self.Outputs[index+1] = self.Inputs[index].OutputVal[1] #CCW
+
+    def ProcessInputs(self):
+        for index, out in enumerate(self.Outputs):
+            if out == 1:
+                if (None == self.SingleOutput) and (True == all( 0 == p for p in self.Prev_Outputs)):
+                    self.SingleOutput = self.OutputIDs[index]
             else:
-                output = self.ButtonOutputs[i]
+                if self.SingleOutput == self.OutputIDs[index]:
+                    self.SingleOutput = None
 
-            if 1 == output:
-                # Store into ButtonOutputs array.
-                self.ButtonOutputs[i] = 1
-                # If SingleOutput is not outputting anything AND the previous OutputArray is all clear of inputs.
-                if (self.ButtonSingleOutput == None) and (True == all(o == 0 for o in self.ButtonOutputsPrev)):
-                    # This button ID is assigned to SingleOutput.
-                    self.ButtonSingleOutput = self.ButtonOutputIDs[i]
-            else:
-                self.ButtonOutputs[i] = 0
-                if self.ButtonSingleOutput == self.ButtonOutputIDs[i]:
-                    self.ButtonSingleOutput = None
-
-        if self.ButtonSingleOutputPrev != self.ButtonSingleOutput:
-        # if self.ButtonSingleOutputPrev == None:
-            print(self.ButtonSingleOutput)
-            self.ButtonSingleOutputPrev = self.ButtonSingleOutput
-            self.ButtonNewOutput = True
+        if self.Prev_SingleOutput != self.SingleOutput:
+            if self.SingleOutput != None:
+                print(self.SingleOutput)
+            self.Prev_SingleOutput = self.SingleOutput
+            self.NewOutput = True
         else:
-            self.ButtonNewOutput = False
-        self.ButtonOutputsPrev = list(self.ButtonOutputs)
-        # print(self.ButtonOutputsPrev)
+            self.NewOutput = False
+        self.Prev_Outputs = list(self.Outputs)
+        
+
+    def CleanUp(self):
+        GPIO.cleanup()
+
+    def PollInputLoop(self):
+        global EXIT_BUTTON
+        while not EXIT_BUTTON:
+            self.UpdateInputs()
+            self.ProcessInputs()
+
+    def PollInput(self):
+        self.UpdateInputs()
+        self.ProcessInputs()
+
 
 
 class ButtonObj:
     def __init__(self, pinNum, debounceTime = DEBOUNCE_TIME, pressTime = PRESS_TIME):
-        now = timeMS()
         self.PinNum = pinNum
+        GPIO.setup(pinNum, GPIO.IN, pull_up_down = GPIO.PUD_DOWN)
 
+
+        now = timeMS()
         self.DebTimer = now
         self.DebDuration = debounceTime
 
-        self.PressTimer = now
-
         self.pinRead = 0
-        self.Output = 0
+        self.OutputVal = 0
 
-    def isPressed(self):
+    def Update(self): # was isPressed
         self.pinRead = GPIO.input(self.PinNum)
         if True == self.DebounceCheck():
             # Invert output if it was actually a press
-            if 0 == self.Output:
-                self.Output = 1
+            if 0 == self.OutputVal:
+                self.OutputVal = 1
                 # print(self.PinNum)
-            elif 1 == self.Output:
-                self.Output = 0
+            elif 1 == self.OutputVal:
+                self.OutputVal = 0
 
     def DebounceCheck(self): # True == Real button press
-        if self.pinRead != self.Output: # New state detected
+        if self.pinRead != self.OutputVal: # New state detected
             now = timeMS()
             if (now < self.DebTimer + self.DebDuration): # Debounce detected
                 return False
@@ -103,35 +118,31 @@ class ButtonObj:
                 self.DebTimer = now
                 return True
 
-
-class EncoderManagerObj:
-    def __init__(self):
-        self.EncPinList = [36, 38]
-        self.Encoder = EncoderObj(self.EncPinList[0],self.EncPinList[1])
-        for i in range(len(self.EncPinList)):
-            GPIO.setup(self.EncPinList[i], GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
-
 class EncoderObj:
     def __init__(self,clkPin,dtPin):
-        self.clkPin  = clkPin
-        self.dtPin   = dtPin
+        global ENC_CLK_PIN, ENC_DT_PIN
+        self.clkPin = ENC_CLK_PIN
+        self.dtPin = ENC_DT_PIN
+
+        GPIO.setup(self.clkPin, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+        GPIO.setup(self.dtPin,  GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+
         self.ClkPinState      = 0
         self.LastClkPinState  = 0
-        self.EncOutput = [0,0] # [ CW, CCW ]
-        # self.Output  = 0
+        self.OutputVal = [0,0] # [ CW, CCW ]
 
-    def isRotated(self):
+    def Update(self):
         ClkPinRead = GPIO.input(self.clkPin)
         dtPinRead = GPIO.input(self.dtPin)
         if ClkPinRead != self.LastClkPinState:
             if (ClkPinRead == 1) and (dtPinRead ==0):
                 # print("CW")
-                self.EncOutput = [1,0]
+                self.OutputVal = [1,0]
             elif (ClkPinRead == 1) and (dtPinRead==1):
                 # print("CCW")
-                self.EncOutput = [0,1]
+                self.OutputVal = [0,1]
         else:
-            self.EncOutput = [0,0]
+            self.OutputVal = [0,0]
         self.LastClkPinState = ClkPinRead
 
 class PollingManagerObj:
@@ -139,21 +150,7 @@ class PollingManagerObj:
         self.BtnMgr = BtnManager
         self.EncMgr = EncManager
 
-    def ButtonPollingLoop(self): # Infinite loop version of ButtonPoll
-        global EXIT_BUTTON
-        while not EXIT_BUTTON:
-            for i in range(len(self.BtnMgr.ButtonList)):
-                self.BtnMgr.ButtonList[i].isPressed()
-            self.EncMgr.Encoder.isRotated()
-            self.BtnMgr.ButtonOutputs[6] = self.EncMgr.Encoder.EncOutput[0]
-            self.BtnMgr.ButtonOutputs[7] = self.EncMgr.Encoder.EncOutput[1]
-            self.BtnMgr.ProcessButtons()
 
-    def ButtonPoll(self):
-        for i in range(6):
-            self.BtnMgr.ButtonList[i].isPressed()
-        self.EncMgr.Encoder.isRotated()
-        self.BtnMgr.ProcessButtons()
 
 def ExitChecker():
     global EXIT_BUTTON
@@ -162,28 +159,13 @@ def ExitChecker():
         if message == "Z":
             EXIT_BUTTON = True
 
-class ButtonScanObj:
-    def __init__(self):
-        # Ignore warning for now
-        GPIO.setwarnings(False)
-
-        # Use physical pin numbering
-        GPIO.setmode(GPIO.BOARD)
-
-        # Initialize Buttons & Encoders
-        self.ButtonManager  = ButtonManagerObj()
-        self.EncoderManager = EncoderManagerObj()
-        self.PollingManager = PollingManagerObj(self.ButtonManager, self.EncoderManager)
-
-    def CleanUp(self):
-        GPIO.cleanup()
 
 
 def main():
-    ButtonScan = ButtonScanObj()
+    InputScan = InputManagerObj()
 
     # Set up threads
-    Button_Thread = threading.Thread(target = ButtonScan.PollingManager.ButtonPollingLoop)
+    Button_Thread = threading.Thread(target = InputScan.PollInputLoop)
     ExitChecker_Thread = threading.Thread(target = ExitChecker)
 
     Button_Thread.start()
@@ -192,7 +174,7 @@ def main():
     Button_Thread.join()
     ExitChecker_Thread.join()
 
-    ButtonScan.CleanUp()
+    InputScan.CleanUp()
 
 
 
