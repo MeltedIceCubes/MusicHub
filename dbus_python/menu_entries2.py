@@ -50,13 +50,11 @@ Action_select_msg = [b'Action :',
                      b'  3 : Media',
                      b'  0 : Back']
 Action_select_choices = ['B1','B2','B3','B5']
-Action_select_priority = [1,1,1,1]
 
 Power_msg = [b'Power Mode :',
                     b'  1 : On',
                     b'  0 : Back']
 Power_select = ['B1','B5']
-Power_priority = [1,1]
 
 Connection_msg = [b'Connection:',
                         b'  1 : Scan'
@@ -69,7 +67,6 @@ Scan_msg = [b'Scan Mode:',
             b'  1 : On',
             b'  0 : Back']
 Scan_select = ['B1','B5']
-Scan_priority = [1,1]
 
 # Discoverable_msg = ["Discoverable: ",
 #                     "  1 : On",
@@ -87,5 +84,4 @@ Media_control_msg = [b'Media Controls:',
                      b'  6 : Vol Up'
                      b'  0 : Back']
 Media_control_select = ['B1','B2','B3','B4','CW','CCW','B5']
-Media_control_priority=[1,1,1,1,1,1,1]
 

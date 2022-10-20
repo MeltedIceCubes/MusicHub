@@ -35,52 +35,55 @@ class DongleInitError(Exception):
     pass
 
 class Event_Item:
-    def __init__(self,passed_method, priority = 5, passed_args = None):
-        self.Priority = priority
+    def __init__(self,passed_method, passed_args = None):
         self.Event = passed_method
         self.args = passed_args
 
 class Executer_Class:
     def __init__(self):
-        self._D1EventQueue = []
+        self.D1EventQueue = []
         self.D1Curr_event = None
 
-        self._D2EventQueue = []
+        self.D2EventQueue = []
         self.D2Curr_event = None
 
-        self._D3EventQueue = []
+        self.D3EventQueue = []
         self.D3Curr_event = None
 
-    @property
-    def D1EventQueue(self):
-        return self._D1EventQueue
-    @D1EventQueue.setter
-    def D1EventQueue(self,val):
-        self._D1EventQueue = val
-
-    @property
-    def D2EventQueue(self):
-        return self._D2EventQueue
-    @D2EventQueue.setter
-    def D2EventQueue(self,val):
-        self._D2EventQueue = val
-
-    @property
-    def D3EventQueue(self):
-        return self._D3EventQueue
-    @D3EventQueue.setter
-    def D3EventQueue(self,val):
-        self._D3EventQueue = val
-
     # @property
-    # def EventQueue(self):
-    #     return self._EventQueue
-    # @EventQueue.setter
-    # def EventQueue(self,val):
-    #     self._EventQueue = val
+    # def D1EventQueue(self):
+    #     return self._D1EventQueue
+    # @D1EventQueue.setter
+    # def D1EventQueue(self,val):
+    #     self._D1EventQueue = val
+    # 
+    # @property
+    # def D2EventQueue(self):
+    #     return self._D2EventQueue
+    # @D2EventQueue.setter
+    # def D2EventQueue(self,val):
+    #     self._D2EventQueue = val
+    # 
+    # @property
+    # def D3EventQueue(self):
+    #     return self._D3EventQueue
+    # @D3EventQueue.setter
+    # def D3EventQueue(self,val):
+    #     self._D3EventQueue = val
+
+    def Execution_Loop(self):
+        global EXIT_PROGRAM
+        while not EXIT_PROGRAM: # Enter loop
+            if not D1_Lock.locked(): # Dongle 1
+                self.RunNextInQueue(self.D1EventQueue)
+                 # self.D1Curr_event = self.RunNextInQueue(self.D1EventQueue)
+            if not D2_Lock.locked(): # Dongle 2
+                self.D2Curr_event = self.RunNextInQueue(self.D2EventQueue)
+            if not D3_Lock.locked(): # Dongle3
+                self.D3Curr_event = self.RunNextInQueue(self.D3EventQueue)
 
 
-    def append(self, function, lock_to_use, data, priority):
+    def append(self, function, lock_to_use, data):
         global Dongle_Selection, Hub_Dongle1, Hub_Dongle2, Hub_Dongle3
 
         if function == None:
@@ -92,23 +95,19 @@ class Executer_Class:
         func_event_thread = threading.Thread(target = func_init,args = (lock_to_use,data,))
 
         # Event Item with function and the Priority from the function itself.
-        func_event_item = Event_Item(func_event_thread, priority)
+        func_event_item = Event_Item(func_event_thread)
 
         if Dongle_Selection is Hub_Dongle1:
-            temp_EventQueue = self.D1EventQueue + [func_event_item]
-            self.D1EventQueue = sorted(temp_EventQueue, key=lambda x: x.Priority)
+            self.D1EventQueue = self.D1EventQueue + [func_event_item]
             return self.D1EventQueue
-        elif Dongle_Selection is Hub_Dongle2:
-            # Temp location to use for sorting.
-            temp_EventQueue = self.D2EventQueue + [func_event_item]
-            self.D2EventQueue = sorted(temp_EventQueue, key=lambda x: x.Priority)
-            return self.D2EventQueue
-        elif Dongle_Selection is Hub_Dongle3:
-            # Temp location to use for sorting.
-            temp_EventQueue = self.D3EventQueue + [func_event_item]
-            self.D1EventQueue = sorted(temp_EventQueue, key=lambda x: x.Priority)
-            return self.D3EventQueue
 
+        elif Dongle_Selection is Hub_Dongle2:
+            self.D2EventQueue = self.D2EventQueue + [func_event_item]
+            return self.D2EventQueue
+
+        elif Dongle_Selection is Hub_Dongle3:
+            self.D1EventQueue = self.D3EventQueue + [func_event_item]
+            return self.D3EventQueue
 
         return None
 
@@ -117,26 +116,19 @@ class Executer_Class:
         if len(queue) > 0:
             queued_func = queue.pop(0)
             queued_func.Event.start()
-            return queued_func.Event
+            queued_func.Event.join()
+            return True
         else:
             return None
 
-    def Execution_Loop(self):
-        global EXIT_PROGRAM
-        while not EXIT_PROGRAM: # Enter loop
-            if not D1_Lock.locked(): # Dongle 1
-                self.D1Curr_event = self.RunNextInQueue(self.D1EventQueue)
-            if not D2_Lock.locked(): # Dongle 2
-                self.D2Curr_event = self.RunNextInQueue(self.D2EventQueue)
-            if not D3_Lock.locked(): # Dongle3
-                self.D3Curr_event = self.RunNextInQueue(self.D3EventQueue)
+
 
 class Controller_Class:
     def __init__(self):
         logging.debug("\nPress Z at any time to quit\n"
               "Press R to refresh menu\n\n")
         self.CurrMenu = None
-        self.ButtonScan = buttons_polling2.ButtonScanObj()
+        self.ButtonScan = buttons_polling2.InputManagerObj()
 
     def GetInput(self):
         global EXIT_PROGRAM, Dongle_Selection
@@ -144,38 +136,43 @@ class Controller_Class:
         self.CurrMenu.PrintMenu()
         while not EXIT_PROGRAM:
             while Ctrl_Lock.locked():
-                pass
-
-            # SocketOutput.sendall(self.CurrMenu.displayState)
-
-            self.ButtonScan.PollingManager.ButtonPoll()
-            if self.ButtonScan.ButtonManager.ButtonNewOutput == True:
-                x = self.ButtonScan.ButtonManager.ButtonSingleOutput
-            else:
-                x = None
-
-            # Get command from the input choice.
-            selected_command, data, command_priority= Menu.ButtonToSelection(self.CurrMenu,x)
-
-            if Dongle_Selection == Hub_Dongle1:
-                task_lock = D1_Lock
-            elif Dongle_Selection == Hub_Dongle2:
-                task_lock = D2_Lock
-            elif Dongle_Selection == Hub_Dongle3:
-                task_lock = D3_Lock
-            else: # Need a defualt or it will crash.
-                task_lock = D1_Lock
-
-            Executer.append(selected_command,task_lock,data, command_priority)
+                continue
 
             # TODO : Remove Later
             time.sleep(0.1)
             if x != None:
                 self.CurrMenu.PrintSocketMenu(SocketOutput)
+            # SocketOutput.sendall(self.CurrMenu.displayState)
+
+            self.ButtonScan.PollInput()   #Get input choice
+
+            if self.ButtonScan.NewOutput == True:  #check for new output
+                x = self.ButtonScan.SingleOutput
+            else:
+                x = None
+
+            # Get command from the input choice.
+            selected_command, data = Menu.ButtonToSelection(self.CurrMenu,x)
+
+            task_lock = self.getTaskLock()
+
+            Executer.append(selected_command,task_lock,data)
 
         # Shutdown
         Bluetooth.shutdown([], dongle_1=Hub_Dongle1, dongle_2=Hub_Dongle2, dongle_3=Hub_Dongle3)
         SocketOutput.sendall(b'End of line')
+
+    def getTaskLock(self):
+        global Dongle_Selection
+        if Dongle_Selection == Hub_Dongle1:
+            task_lock = D1_Lock
+        elif Dongle_Selection == Hub_Dongle2:
+            task_lock = D2_Lock
+        elif Dongle_Selection == Hub_Dongle3:
+            task_lock = D3_Lock
+        else:  # Need a defualt or it will crash.
+            task_lock = D1_Lock
+        return task_lock
 
 def InitializeAllDongles():
     global Hub_Dongle1,Hub_Dongle2,Hub_Dongle3
@@ -191,7 +188,6 @@ def select_dongle1(lock,data):
     Dongle_Selection = Hub_Dongle1
     SocketOutput.sendall(b'Selection:Dongle1')
     # logging.debug("Dongle 1 selected. Address = %s" %str(id(Dongle_Selection)))
-    SocketOutput.sendall(b"Dongle 1 selected.")
     MenuTo_FunctionSelection()
     lock.release()
 def select_dongle2(lock,data):
@@ -212,7 +208,6 @@ def select_dongle3(lock,data):
     SocketOutput.sendall(b'Selection:Dongle3')
     # logging.debug("Dongle 3 selected. Address = %s" %str(id(Dongle_Selection)))
     SocketOutput.sendall(b"Dongle 3 selected.")
-
     MenuTo_FunctionSelection()
     lock.release()
 
@@ -269,6 +264,20 @@ def Power_backToFunctions(lock, data):
 def Scan_on(lock, data):
     lock.acquire()
     global Dongle_Selection, Ctrl_Lock
+    # TESTTEST
+
+    global EXIT_PROGRAM, Controller
+    Ctrl_Lock.acquire()
+
+    while not EXIT_PROGRAM:
+        Controller.ButtonScan.PollInput()
+        if Controller.ButtonScan.NewOutput == True:
+            x = Controller.ButtonScan.SingleOutput
+            logging.debug(x)
+        else:
+            x = None
+    # END OF TESTTEST
+
     if Dongle_Selection.Dongle.powered:
         Ctrl_Lock.acquire()
         logging.debug("Scan on")
@@ -278,6 +287,7 @@ def Scan_on(lock, data):
         except:
             pass
         Dongle_Selection.find_devices_in_adapter() #List pairable devices.
+
         Dongle_Selection.get_media_controls() # Get media controls.
         Dongle_Selection.get_Alias()
         Dongle_Selection.discoverable_off()
@@ -341,13 +351,6 @@ def Media_backToFunctions(lock,data):
     MenuTo_FunctionSelection()
     lock.release()
 
-# class Menu_selection_class:
-#     def __init__(self,msg,select,priority,functions,data):
-#         self.msg       = msg
-#         self.select    = select
-#         self.priority  = priority
-#         self.functions = functions
-#         self.data      = data
 
 # *****************************
 #      Define Constants
@@ -398,7 +401,6 @@ MEDIA_SEELCT = b"MEDIA"
 Dongle_Selection_menu = Menu.Menu_listing(
     menu_entries.Dongle_select_msg,
     menu_entries.Dongle_select_choices,
-    menu_entries.Dongle_select_priority,
     [select_dongle1, select_dongle2, select_dongle3],
     [None, None, None],
     DONGLE_SELECT)
@@ -409,7 +411,6 @@ def MenuTo_DongleSelection():
 Function_Selection_menu = Menu.Menu_listing(
     menu_entries.Action_select_msg,
     menu_entries.Action_select_choices,
-    menu_entries.Action_select_priority,
     [Power_control, Scan_control, Media_controls, BackTo_DongleSelect],
     [None, None, None, None],
     FUNCT_SELECT)
@@ -420,7 +421,6 @@ def MenuTo_FunctionSelection():
 Power_menu = Menu.Menu_listing(
     menu_entries.Power_msg,
     menu_entries.Power_select,
-    menu_entries.Power_priority,
     [Power_on, Power_backToFunctions],
     [None, None, None, None],
     POWER_SELECT)
@@ -431,9 +431,8 @@ def MenuTo_PowerSelection():
 Scan_menu = Menu.Menu_listing(
     menu_entries.Scan_msg,
     menu_entries.Scan_select,
-    menu_entries.Scan_priority,
     [Scan_on, Scan_backToFunctions],
-    [None, None, None],
+    [None, None],
     SCAN_SELECT)
 def MenuTo_ScanSelection():
     global Controller
@@ -442,7 +441,6 @@ def MenuTo_ScanSelection():
 Media_menu = Menu.Menu_listing(
     menu_entries.Media_control_msg,
     menu_entries.Media_control_select,
-    menu_entries.Media_control_priority,
     [Media_Play,
      Media_Pause,
      Media_Prev,

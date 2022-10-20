@@ -63,7 +63,8 @@ class InputManagerObj:
 
         if self.Prev_SingleOutput != self.SingleOutput:
             if self.SingleOutput != None:
-                print(self.SingleOutput)
+                pass
+                # print(self.SingleOutput)
             self.Prev_SingleOutput = self.SingleOutput
             self.NewOutput = True
         else:
