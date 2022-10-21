@@ -39,8 +39,12 @@ class Controller_Class:
                 if callable(FunctionToExecute):
                     # Run Function.Run()
                     ExecutedFunctionReturn = FunctionToExecute(self.getButtonInput, *FunctionParams)
+
                     # Parse ExecutedFunctionReturn to a managable object
-                    parsedFuncReturn = Menu.FunctionReturnClass(ExecutedFunctionReturn)
+                    if type(ExecutedFunctionReturn) != Menu.FunctionReturnClass:
+                        parsedFuncReturn = Menu.FunctionReturnClass(ExecutedFunctionReturn)
+                    else:
+                        parsedFuncReturn = ExecutedFunctionReturn
                     if parsedFuncReturn.MenuItem != None:
                         self.CurrMenu=parsedFuncReturn.MenuItem
 

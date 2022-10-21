@@ -18,23 +18,6 @@ class MenuObj():
                  paramCW = None,
                  paramCCW=None
                 ):
-        # self.B1         = kwargs.get('func1',   None)
-        # self.B2         = kwargs.get('func2',   None)
-        # self.B3         = kwargs.get('func3',   None)
-        # self.B4         = kwargs.get('func4',   None)
-        # self.B5         = kwargs.get('func5',   None)
-        # self.EC         = kwargs.get('funcEC',  None)
-        # self.CW         = kwargs.get('funcCW',  None)
-        # self.CCW        = kwargs.get('funcCCW', None)
-        # self.B1_param   = kwargs.get('param1',  None)
-        # self.B2_param   = kwargs.get('param2',  None)
-        # self.B3_param   = kwargs.get('param3',  None)
-        # self.B4_param   = kwargs.get('param4',  None)
-        # self.B5_param   = kwargs.get('param5',  None)
-        # self.EC_param   = kwargs.get('paramEC', None)
-        # self.CW_param   = kwargs.get('paramCW', None)
-        # self.CCW_param  = kwargs.get('paramCCW',None)
-
         self.B1 = func1
         self.B2 = func2
         self.B3 = func3
@@ -108,6 +91,7 @@ def CheckForRunAttr(function):
         return FunctionRun
     else:
         return None
+
 class FunctionReturnClass:
     '''
     @info : First element of FunctionReturn MUST represent MenuObj.
@@ -193,10 +177,12 @@ class Menu_SelectableOptions():
                         self.selection_index -= 1
                 elif ButtonOutput == "EC": # Execute function
                     pass
-            menuOutput = "\r" + self.options[self.selection_index-1]
+
+            menuOutput = "%s/%s:" %(self.selection_index, len(self.options)) + self.options[self.selection_index-1] + "\r"
 
             config.PrintToSocket(menuOutput)
-        return(None,)
+        return_val = FunctionReturnClass(None)
+        return return_val
 
 
 # TEST MENU OBJECTS
@@ -246,7 +232,7 @@ class BBB4(PrintItems):
 
 
 # Main Menu
-AAA000 = MenuObj(func1 = Menu_SelectableOptions(["k","y","e"]).Run,
+AAA000 = MenuObj(func1 = Menu_SelectableOptions(["Choice 1","Choice 2","Choice 3"]).Run,
                  func2 = Menu_YesNoBack().Run,
                  func3 = AAA3().Run,
                  func4 = AAA4().Run,
