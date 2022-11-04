@@ -19,7 +19,7 @@ MAC_LIST = ["DC:A6:32:92:BF:F5",
             # MusicHub : 2
             # MusicHub : 3
 
-BLUEZ_BUS_NAME       = 'org.bluez'
+BLUEZ_BUS_NAME = 'org.bluez'
 
 
 # *********************************************************
@@ -47,6 +47,23 @@ class Bluetooth_Object_Manager:
         self.Hub_Dongle2.Power_Off()
         self.Hub_Dongle3.Power_Off()
         config.PrintToSocket("Dongle Power off")
+    def DongleSelect(self, Next = False, Prev = False):
+        # This is dumb but I dont want to over complicate it...
+        if (Next == False) and (Prev == False): 
+            return
+        if Next == True:
+            if self.Curr_Dongle.Dongle.address == MAC_LIST[1]:
+                self.Curr_Dongle = self.Hub_Dongle2
+            elif self.Curr_Dongle.Dongle.address == MAC_LIST[2]:
+                self.Curr_Dongle = self.Hub_Dongle3
+        elif Prev == True:
+            if self.Curr_Dongle.Dongle.address == MAC_LIST[3]:
+                self.Curr_Dongle = self.Hub_Dongle2
+            elif self.Curr_Dongle.Dongle.address == MAC_LIST[2]:
+                self.Curr_Dongle = self.Hub_Dongle1
+        
+
+
 class HubDongle:
     def __init__(self, mac_address: str, bus):
         # System Bus Object
@@ -56,8 +73,8 @@ class HubDongle:
         #  - used to pairing and connecting
         #  - list of potential devices to connect to.
         #  - Used in find_
-        self._device_list = []
-
+        self.device_list = []
+        self.scan_time = 5
 
         try:
             # Make adapter object with specified mac address.
@@ -85,7 +102,7 @@ class HubDongle:
     def Power_Check(self):
         return self.Dongle.powered
 
-    def Power_Toggle(self, ctrl):
+    def Power_Toggle(self):
         ctrl = None # Unused
         if not self.Power_Check(): # OFF -> ON
             self.Dongle.powered = True
@@ -94,13 +111,18 @@ class HubDongle:
             self.Dongle.powered = False
             print("Power off")
 
+    def Power_On(self):
+        self.Dongle.powered = True
+        print("Power on ")
+
     def Power_Off(self):
         self.Dongle.powered = False
+        print("Power off ")
     # ---------------------------------------------------------
     # ---                    Scanning                       ---
     # ---------------------------------------------------------
 
-    def Scan_On(self, ctrl):
+    def Scan_On(self):
         """
         @info : Start Scan in a separate thread.
         @TODO : Add spinner animation to wait time
@@ -109,9 +131,10 @@ class HubDongle:
         stop_sig = [False] # used to stop wait time counter.
         # Set up thread for discovery
         discovery_Thread = threading.Thread(target = self.enable_nearby_discovery,
-                                            args =(5, stop_sig,) )
+                                            args =(self.scan_time, stop_sig,) )
         discovery_Thread.start()
-        showWaitTime(5000, stop_sig)
+        #Replace this with an animation
+        showWaitTime(self.scan_time*1000, stop_sig)
         discovery_Thread.join()
 
     def enable_nearby_discovery(self, timer, stop_signal):
@@ -134,7 +157,7 @@ class HubDongle:
         @info : Find and save viable devices to connect to.
         """
         # Clear device list.(Since we're updating it from here)
-        self._device_list = []
+        self.device_list = []
         # DBus path to use
         path_prefix = self.Dongle.path
         # Get object manager
@@ -163,11 +186,45 @@ class HubDongle:
                 # (if it doesn't it's some stray signal)
                 if "Name" in _properties:
                     # Append device's properties and interface
-                    self._device_list.append(
+                    self.device_list.append(
                         DeviceIFaceAndProps(_device_iface,
                                             _properties,
                                             _props_iface))
         print("Devices found and listed")
+
+    def pair_and_connect(self,device_and_props):
+        """
+        @info : Pair and connect to a found device.
+        @param : device object
+        """
+        target_device = device_and_props.deviceObj
+        if target_device:
+            pairResultError = True
+            try:
+                pairResultError = target_device.Pair()
+            except Exception as e:
+                pairResultError = self.pair_exception_handler(e)
+            if pairResultError:
+                return False
+        config.PrintToSocket(r'*d0-Device Paired\r')
+
+        trustResultError = True
+        try:
+            trustResultError = 
+
+    def pair_exception_handler(self, error):
+        """
+        @info : Handles the exception to any failed pair requests.
+        @param : exceptions to device.Pair()
+        @note : more info here :
+                https://git.kernel.org/pub/scm/bluetooth/bluez.git/tree/doc/device-api.txt
+        """
+        if "org.bluez.Error.AlreadyExists" in str(error):  # The only acceptable error
+            logging.debug("AlreadyExists")
+            return None
+        else:
+            logging.debug("Some other pairing error")
+            return True
 
 def showWaitTime(waitTime, stop_signal):
     # time in ms

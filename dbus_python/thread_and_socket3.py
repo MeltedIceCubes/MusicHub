@@ -1,6 +1,7 @@
 import threading
 from gpio import buttons_polling2 as buttons
 import menu_list4 as Menu
+import menu_items1 as DispMenu
 import dbus_Bluetooth10 as Bluetooth
 import config
 import logging
@@ -15,7 +16,6 @@ class Controller_Class:
     def __init__(self):
         self.ButtonScan = buttons.InputManagerObj()
         self.MenuFunctions = None
-        self.BluetoothObj = Bluetooth.Bluetooth_Object_Manager()
         self.CurrMenu = Menu.MenuObj()
     def mainLoop(self):
         '''
@@ -23,37 +23,21 @@ class Controller_Class:
                 - Pass button parse object to functions that need it.
         @return : None. Just exit loop when Global is quitting.
         '''
-        self.CurrMenu = Menu.AAA000
+        self.CurrMenu = DispMenu.AAA000
         # self.CurrMenu = Menu.MenuObj(func1 = self.BluetoothObj.Curr_Dongle.Power_Toggle,
         #                              func2 = self.BluetoothObj.Curr_Dongle.Scan_On)
         while not config.EXIT_PROGRAM:
-            ButtonOutput = self.getButtonInput()  #Get Input choice
-
+            ButtonOutput = self.getButtonInput()  #Get Input choice as string
             if ButtonOutput != None:
-
-                print(ButtonOutput)
-
                 # Get function from Key press
-                FunctionToExecute, FunctionParams = Menu.ParseButton(ButtonOutput,self.CurrMenu)
-                # If that button has a function: (has to be "Run()")
+                FunctionToExecute = Menu.ParseButton(ButtonOutput,self.CurrMenu)
+                # Check if function is callable
                 if callable(FunctionToExecute):
-                    # Run Function.Run()
-                    ExecutedFunctionReturn = FunctionToExecute(self.getButtonInput, *FunctionParams)
+                    # Run function
+                    self.CurrMenu = FunctionToExecute(self)
+                    self.CurrMenu.printMenu()
 
-                    # Parse ExecutedFunctionReturn to a managable object
-                    if type(ExecutedFunctionReturn) != Menu.FunctionReturnClass:
-                        parsedFuncReturn = Menu.FunctionReturnClass(ExecutedFunctionReturn)
-                    else:
-                        parsedFuncReturn = ExecutedFunctionReturn
-                    if parsedFuncReturn.MenuItem != None:
-                        self.CurrMenu=parsedFuncReturn.MenuItem
-
-
-                    # TODO : Check if "ExecutedFunctionReturn" is a new menu item.
-                    # TODO : ExecutedFunctionReturn might need to pass data back.
-
-        self.BluetoothObj.shutdown()
-
+        config.BtController.shutdown()
 
     def getButtonInput(self):
         '''
@@ -78,8 +62,6 @@ def ExitChecker():
             config.EXIT_PROGRAM = True
             break
 
-def checkPower(Bt_obj):
-    Bt_obj.Power_Check()
 
 
 def main():
@@ -91,8 +73,10 @@ def main():
         LocalSocketOutput.connect((config.HOST, config.PORT))
         config.SocketOutput = LocalSocketOutput
 
-        #TODO INITIALIZE DONGLES
+        # Initialize main controller object
         Controller = Controller_Class()
+        # Initialize Bluetooth Object
+        config.BtController = Bluetooth.Bluetooth_Object_Manager()
 
         ExitChecker_Thread = threading.Thread(target=ExitChecker)
         Controller_Thread  = threading.Thread(target = Controller.mainLoop)

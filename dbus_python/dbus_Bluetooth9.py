@@ -281,7 +281,7 @@ class HubDongle:
         for device in self.device_list:
             try:
                 if "Name" in device.properties:
-                    #Add to list if it has a "Name" attribute
+                    # Add to list if it has a "Name" attribute
                     self.usable_devices.append(device)
             except:
                 logging.debug("Could not print name of this device")

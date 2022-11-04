@@ -56,7 +56,8 @@ class Generic_Display_Item:
 
     def UpdateStrDisplay(self):
         pass
-
+    def UpdateTime(self):
+        self.now = int(time.time() * 1000)
 
 class Static_Display_Item(Generic_Display_Item):
     def __init__(self, index: str, message: str):
@@ -80,6 +81,7 @@ class Blink_Display_Item(Generic_Display_Item):
         self.blinkRate = 1000  # ms
         self.lastToggle = 0  # how many ms ago it toggled
         self.now = 0
+        self.UpdateTime()
 
     def InsertLetters(self, CurrOutput):
         output = super().InsertLetters(CurrOutput)
@@ -96,8 +98,7 @@ class Blink_Display_Item(Generic_Display_Item):
                 self.hidden = False
                 self.message = self.save_message
 
-    def UpdateTime(self):
-        self.now = int(time.time() * 1000)
+
 
 
 class Dynamic_Display_Item(Generic_Display_Item):
@@ -105,9 +106,9 @@ class Dynamic_Display_Item(Generic_Display_Item):
         super().__init__(index, message)
         self.mode = 3
         self.now = 0
-        self.lastAdvance = 0
         self.advanceRate = 300
-
+        self.UpdateTime()
+        self.lastAdvance = self.now + 500
     def InsertLetters(self, CurrOutput):
         output = super().InsertLetters(CurrOutput)
         return output
@@ -121,8 +122,6 @@ class Dynamic_Display_Item(Generic_Display_Item):
             else:
                 self.str_index = 0
 
-    def UpdateTime(self):
-        self.now = int(time.time() * 1000)
 
 
 class Fast_Blink_Display_Item(Blink_Display_Item):
@@ -162,7 +161,7 @@ def split_text(message):
                 pass
         return display_items
 
-    return None  # bad message recieved
+    return []  # bad message recieved
 
 
 def display_items_Loop(message_objs):
@@ -187,6 +186,19 @@ def display_items(message_objs):
         print(">" + (''.join(DisplayOutput)) + "<", end='\r')
     except:
         pass
+
+class DisplayManager_class:
+    def __init__(self):
+        self.displayItems = []
+    def printItems(self):
+        DisplayOutput = [None for i in range(10)]
+        for item in self.displayItems:
+            DisplayOutput = item.InsertLetters(DisplayOutput)
+        DisplayOutput = [" " if D == None else D for D in DisplayOutput]
+        print(">" + (''.join(DisplayOutput)) + "<", end='\r')
+    def Update(self, message):
+        self.displayItems = split_text(message)
+
 
 def main():
     # message = r'*s0-K:*d2-Morris-Takamoto*s8-:K' # Good example
