@@ -351,6 +351,26 @@ class HubDongle:
         finally:
             if self.MediaControl.MediaPlayer is None:
                 logging.debug("No MediaPlayer was found")
+
+    def getMediaTransport(self):
+        """https://scribles.net/controlling-bluetooth-audio-on-raspberry-pi/"""
+        obj = bus.get_object('org.bluez', "/")
+        mgr = dbus.Interface(obj, 'org.freedesktop.DBus.ObjectManager')
+        try:
+            for _path, _ifaces in mgr.GetManagedObjects().items():
+                if (self.connected_obj.object_path in _path ) and \
+                        ('org.bluez.MediaTransport1' in _ifaces):
+                    self.MediaControl.MediaTransporter = dbus.Interface(
+                        bus.get_object('org.bluez', _path),
+                        'org.freedesktop.DBus.Properties')
+                    logging.debug("Got Transporter obj")
+                    continue
+        except:
+            logging.debug("No Transporter obj available")
+        finally:
+            if self.MediaControl.MediaTransporter is None:
+                logging.debug("No Transporter obj was found")
+
     class MediaControlClass:
         def __init__(self):
             self.MediaController = None
@@ -369,7 +389,7 @@ class HubDongle:
         def VolumeUp(self):
             try:
                 volume = self.MediaTransporter.Get('org.bluez.MediaTransport1', 'Volume')
-                volume = volume + 10
+                volume += 10
                 if volume > 127:
                     volume = 127
                 self.MediaTransporter.Set('org.bluez.MediaTransport1', 'Volume', dbus.UInt16(volume))
@@ -381,7 +401,7 @@ class HubDongle:
         def VolumeDown(self):
             try:
                 volume = self.MediaTransporter.Get('org.bluez.MediaTransport1', 'Volume')
-                volume = volume - 10
+                volume -= 10
                 if volume < 0:
                     volume = 0
                 self.MediaTransporter.Set('org.bluez.MediaTransport1', 'Volume', dbus.UInt16(volume))
@@ -391,24 +411,7 @@ class HubDongle:
                 return volume
 
 
-    def getMediaTransport(self):
-        """https://scribles.net/controlling-bluetooth-audio-on-raspberry-pi/"""
-        obj = bus.get_object('org.bluez', "/")
-        mgr = dbus.Interface(obj, 'org.freedesktop.DBus.ObjectManager')
-        try:
-            for path, ifaces in mgr.GetManagedObjects().items():
-                if (self.connected_obj.object_path in path ) and \
-                        ('org.bluez.MediaTransport1' in ifaces):
-                    self.MediaControl.MediaTransporter = dbus.Interface(
-                        bus.get_object('org.bluez', path),
-                        'org.freedesktop.DBus.Properties')
-                    logging.debug("Got Transporter obj")
-                    continue
-        except:
-            logging.debug("No Transporter obj available")
-        finally:
-            if self.MediaControl.MediaTransporter is None:
-                logging.debug("No Transporter obj was found")
+
 
 
 
@@ -441,8 +444,7 @@ def recursive_introspection(service, object_path):
     """
     @info : Recursively enters the dbus object tree to find more objects.
             Updates [DBusStragglers] with the found objects
-    @param :- bus : session bus object. Ex: dbus.SystemBus()
-            - service : dbus service to introspect Ex: "org.bluez"
+    @param :- service : dbus service to introspect Ex: "org.bluez"
             - object_path : the path of the top most object we want to introspect.
                             Ex: "/org/bluez"
     """

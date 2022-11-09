@@ -1,6 +1,7 @@
 from cust_bluezero import adapter, device
 import dbus
 import re, sys, time, threading
+from xml.etree import ElementTree
 
 import logging
 logging.basicConfig(format = '%(message)s',level = logging.DEBUG)
@@ -37,14 +38,24 @@ class DeviceIFaceAndProps:
 
 class Bluetooth_Object_Manager:
     def __init__(self):
-        bus = dbus.SystemBus()
-        self.Hub_Dongle1 = HubDongle(MAC_LIST[1], bus)
-        self.Hub_Dongle2 = HubDongle(MAC_LIST[2], bus)
-        self.Hub_Dongle3 = HubDongle(MAC_LIST[3], bus)
+        self.SysBus = dbus.SystemBus()
+        self.Hub_Dongle1 = HubDongle(MAC_LIST[1], self.SysBus)
+        self.Hub_Dongle2 = HubDongle(MAC_LIST[2], self.SysBus)
+        self.Hub_Dongle3 = HubDongle(MAC_LIST[3], self.SysBus)
         self.Curr_Dongle = self.Hub_Dongle1
+        self.Dongle1Vol  = 0
+        self.Dongle2Vol  = 0
+        self.Dongle3Vol  = 0
+
+        self.Stragglers = list()
     def shutdown(self):
+        self.find_dbus_stragglers()
+        self.remove_stragglers()
+        self.Hub_Dongle1.discoverable_off()
         self.Hub_Dongle1.Power_Off()
+        self.Hub_Dongle2.discoverable_off()
         self.Hub_Dongle2.Power_Off()
+        self.Hub_Dongle3.discoverable_off()
         self.Hub_Dongle3.Power_Off()
         config.PrintToSocket("Dongle Power off")
     def DongleSelect(self, Next = False, Prev = False):
@@ -61,7 +72,59 @@ class Bluetooth_Object_Manager:
                 self.Curr_Dongle = self.Hub_Dongle2
             elif self.Curr_Dongle.Dongle.address == MAC_LIST[2]:
                 self.Curr_Dongle = self.Hub_Dongle1
-        
+
+    def GetDongleVolumes(self):
+        self.Hub_Dongle1.Volume = self.Hub_Dongle1.MediaControl.GetVolume()
+        self.Hub_Dongle2.Volume = self.Hub_Dongle2.MediaControl.GetVolume()
+        self.Hub_Dongle3.Volume = self.Hub_Dongle3.MediaControl.GetVolume()
+
+    def remove_stragglers(self):
+        dongles = [self.Hub_Dongle1, self.Hub_Dongle2, self.Hub_Dongle3]
+        for dongle in dongles:
+            for straggler in self.Stragglers:
+                try:
+                    dongle.Dongle.remove_device(straggler)
+                    logging.debug("Removed : %s" %straggler)
+                except:
+                    logging.debug("Failed to remove : %s" %straggler)
+
+    def find_dbus_stragglers(self):
+        """
+        @info : finds objects within the given adapter's path to mark for removal
+                Calls and lists the objects that are stuck in the cache for bluez
+       @param :- service : dbus service to introspect Ex: "org.bluez"
+        - object_path : the path of the top most object we want to introspect.
+                        Ex: "/org/bluez"
+        """
+        self.recursive_introspection('org.bluez', '/org/bluez')
+
+    def recursive_introspection(self, service = 'org.bluez', object_path = '/org/bluez' ):
+        match_result = self.get_device_mac(object_path)
+        if match_result is not None:
+            self.Stragglers.append(match_result)
+
+        # Goes through object looking for new objects
+        _obj = self.SysBus.get_object(service,object_path)
+        _iface = dbus.Interface(_obj, 'org.freedesktop.DBus.Introspectable')
+        _xml_string = _iface.Introspect()
+        for child in ElementTree.fromstring(_xml_string):
+            if child.tag == 'node':
+                if object_path == '/':
+                    object_path = ''
+                new_path = '/'.join((object_path, child.attrib['name']))
+                self.recursive_introspection(service, new_path)
+
+    def get_device_mac(self,path):
+        """
+        @info : Get the device mac address
+        @param : object path in string form.
+        """
+        pattern = r'\/org\/bluez\/hci\d\/dev[_\d\w]{18}'
+        match = re.search(pattern, path)
+        if match:
+            return match.group(0)
+        else:
+            return None
 
 
 class HubDongle:
@@ -75,7 +138,10 @@ class HubDongle:
         #  - Used in find_
         self.device_list = []
         self.scan_time = 5
-
+        self.connected_device = None
+        self.Volume = 0
+        self.MediaControl = self.MediaControlClass(self)
+        self.Stragglers = list()
         try:
             # Make adapter object with specified mac address.
             self.Dongle = adapter.Adapter(mac_address)
@@ -83,7 +149,6 @@ class HubDongle:
         except:
             self.Dongle = None
             logging.debug("\nDongle with MAC:%s could not initiailze" % mac_address)
-            raise DongleInitError("Dongle with MAC:%s could not initialize" % mac_address)
 
     def on_device_found(self, device: device.Device):
         """
@@ -91,10 +156,10 @@ class HubDongle:
         @param : device object
         """
         try:
-            print(device.address)
-            print(device.name)
+            logging.debug(device.address)
+            logging.debug(device.name)
         except:
-            print('Error')
+            logging.debug('Error')
 
     # ---------------------------------------------------------
     # ---                      Power                        ---
@@ -119,7 +184,7 @@ class HubDongle:
         self.Dongle.powered = False
         print("Power off ")
     # ---------------------------------------------------------
-    # ---                    Scanning                       ---
+    # ---                    Scan                           ---
     # ---------------------------------------------------------
 
     def Scan_On(self):
@@ -139,19 +204,25 @@ class HubDongle:
 
     def enable_nearby_discovery(self, timer, stop_signal):
         """
-        @info : start nearby discovery:
-              : Sends stop signal to the waiter to stop.
+        @info   : start nearby discovery:
+                : Sends stop signal to the waiter to stop.
         """
         try:
-            self.Dongle.discoverable = True
+            self.discoverable_on()
             self.Dongle.nearby_discovery(timeout = timer)
             # self.Dongle.discoverable = False
-            print("discovery over")
+            logging.debug("discovery over")
         except:
-            print("Not powered")
+            logging.debug("Not powered")
         self.find_connectable_devices()
         stop_signal[0] = True
-
+    def discoverable_on(self):
+        self.Dongle.discoverable = True
+    def discoverable_off(self):
+        try:
+            self.Dongle.discoverable = False
+        except:
+            pass
     def find_connectable_devices(self):
         """
         @info : Find and save viable devices to connect to.
@@ -162,7 +233,7 @@ class HubDongle:
         path_prefix = self.Dongle.path
         # Get object manager
         _manager = dbus.Interface(self.SysBus.get_object("org.bluez","/"),
-                                   "org.freedesktop.DBus.ObjectManager")
+                                    "org.freedesktop.DBus.ObjectManager")
         # Get objects to look through.
         objects = _manager.GetManagedObjects()
         # Iterate through objects.
@@ -203,28 +274,209 @@ class HubDongle:
             try:
                 pairResultError = target_device.Pair()
             except Exception as e:
-                pairResultError = self.pair_exception_handler(e)
-            if pairResultError:
+                pairResultError = pair_exception_handler(e)
+            if pairResultError is not None:
+                pass
                 return False
-        config.PrintToSocket(r'*d0-Device Paired\r')
+            config.PrintToSocket(r'*d0-Device Paired\r')
 
-        trustResultError = True
-        try:
-            trustResultError = 
+            trustResultError = True
+            try:
+                trustResultError = device_and_props.props_iface.Set("org.bluez.Device1", "Trusted", True)
+                config.PrintToSocket(r'*d0-Device Trusted\r')
+            except Exception as ee:
+                config.PrintToSocket(r'*d0-Failed to trust\r')
 
-    def pair_exception_handler(self, error):
-        """
-        @info : Handles the exception to any failed pair requests.
-        @param : exceptions to device.Pair()
-        @note : more info here :
-                https://git.kernel.org/pub/scm/bluetooth/bluez.git/tree/doc/device-api.txt
-        """
-        if "org.bluez.Error.AlreadyExists" in str(error):  # The only acceptable error
-            logging.debug("AlreadyExists")
-            return None
+            try:
+                connectResultError = target_device.Connect()
+            except Exception as eee:
+                connectResultError = connect_exception_handler(eee)
+            if connectResultError:
+                config.PrintToSocket(r'*d0-Failed to Connect\r')
+                return False
+            else:
+                config.PrintToSocket(r'*d0-Device Connected\r')
+                self.connected_device = target_device
+                return True
         else:
-            logging.debug("Some other pairing error")
-            return True
+            config.PrintToSocket(r'*d0-Something went wrong. Try again.\r')
+            return False
+
+
+
+    # ---------------------------------------------------------
+    # ---                    Media                          ---
+    # ---------------------------------------------------------
+        # Note: Do I have to refresh if player object changes?
+        # or does it not change?
+    class MediaControlClass:
+        def __init__(self, thisDongle):
+            self.thisDongle = thisDongle
+            self.MediaController = None
+            self.MediaPlayer     = None
+            self.MediaTransporter= None
+        def PlayStatus_Media(self):
+            """
+            Playing = "playing"
+            Paused  = "paused"
+            
+            """
+            pass
+
+        def Play_Media(self):
+            if self.MediaController != None:
+                self.MediaController.Play()
+            elif self.MediaPlayer != None:
+                self.MediaPlayer.Play()
+        def Pause_Media(self):
+            if self.MediaController != None:
+                self.MediaController.Pause()
+            elif self.MediaPlayer != None:
+                self.MediaPlayer.Pause()
+        def Prev_Media(self):
+            if self.MediaController != None: 
+                self.MediaController.Previous()
+            elif self.MediaPlayer != None: 
+                self.MediaPlayer.Previous()
+        def Next_Media(self):
+            if self.MediaController != None: 
+                self.MediaController.Next()
+            elif self.MediaPlayer != None: 
+                self.MediaPlayer.Next()
+        def VolUp_Media(self):
+            volume = None
+            try:
+                volume = self.thisDongle.Volume
+                volume += 10
+                if volume >127:
+                    volume = 127
+                self.MediaTransporter.Set('org.bluez.MediaTransport1', 'Volume', dbus.UInt16(volume))
+            except:
+                volume = -1
+            finally:
+                return volume
+        def VolDn_Media(self):
+            volume = None
+            try:
+                volume = self.thisDongle.Volume
+                volume -= 10
+                if volume < 0:
+                    volume = 0
+                self.MediaTransporter.Set('org.bluez.MediaTransport1', 'Volume', dbus.UInt16(volume))
+            except:
+                volume = -1
+            finally:
+                return volume
+        def VolMute_Media(self):
+            volume = 0
+            try:
+                self.MediaTransporter.Set('org.bluez.MediaTransport1', 'Volume', dbus.UInt16(volume))
+            except:
+                volume = -1
+            finally:
+                return volume
+        def GetVolume(self):
+            if self.MediaTransporter is not None:
+                try:
+                    return self.MediaTransporter.Get('org.bluez.MediaTransport1', 'Volume')
+                except:
+                    return 0
+            else:
+                return 0
+    def get_media_controls(self):
+        if self.connected_device:
+            for i in range(3): # Number of attempts
+                self.getMediaControlObj()
+                if (self.MediaControl.MediaController is not None) and\
+                        (self.MediaControl.MediaPlayer is not None):
+                    break
+            self.getMediaTransportObj()     # Separate from Media control attempts
+                                            # since some devices may not support this.
+
+    def getMediaControlObj(self):
+        _ctrl_obj           = None
+        _ctrl_props_iface   = None
+        _ctrl_properties    = None
+        try:
+            connected_device = self.connected_device
+            _ctrl_obj           = self.SysBus.get_object(BLUEZ_BUS_NAME, connected_device.object_path)
+            _ctrl_props_iface   = dbus.Interface(_ctrl_obj, 'org.freedesktop.DBus.Properties')
+            _ctrl_properties    = _ctrl_props_iface.GetAll('org.bluez.MediaControl1')
+            logging.debug("Got Controller obj")
+        except:
+            logging.debug("No Controller obj available")
+        finally:
+            if self.MediaControl.MediaController is None:
+                logging.debug("No Media Controller was found")
+
+        try:
+            if 'Player' in _ctrl_properties: # if there is a player iface, we need to go deeper
+                _play_obj           = self.SysBus.get_object(BLUEZ_BUS_NAME, _ctrl_properties['Player'])
+                _play_props_iface   = dbus.Interface(_play_obj, 'org.freedesktop.DBus.Properties')
+                _play_properties    = _play_props_iface.GetAll('org.bluez.MediaPlayer1')
+                self.MediaControl.MediaPlayer = dbus.Interface(_play_obj, 'org.bluez.MediaPlayer1')
+                logging.debug("Got Player obj")
+        except:
+            logging.debug("No Player obj available")
+        finally:
+            if self.MediaControl.MediaPlayer is None:
+                logging.debug("No Media Player was found")
+
+    def getMediaTransportObj(self):
+        """
+        https://scribles.net/controlling-bluetooth-audio-on-raspberry-pi/
+        """
+        obj = self.SysBus.get_object('org.bluez','/')
+        mgr = dbus.Interface(obj, 'org.freedesktop.DBus.ObjectManager')
+        try:
+            for _path, _ifaces in mgr.GetManagedObjects().items():
+                if (self.connected_device.object_path in _path) and \
+                        ('org.bluez.MediaTransport1' in _ifaces):
+                    self.MediaControl.MediaTransporter = dbus.Interface(
+                        self.SysBus.get_object('org.bluez',_path),
+                        'org.freedesktop.DBus.Properties')
+                    logging.debug("Got Transporter obj")
+                    continue
+        except:
+            logging.debug("No Transporter obj available")
+        finally:
+            if self.MediaControl.MediaTransporter is None:
+                logging.debug("No Transporter obj was found")
+
+
+
+
+
+def pair_exception_handler(error):
+    """
+    @info : Handles the exception to any failed pair requests.
+    @param : exceptions to device.Pair()
+    @note : more info here :
+            https://git.kernel.org/pub/scm/bluetooth/bluez.git/tree/doc/device-api.txt
+    """
+    if "org.bluez.Error.AlreadyExists" in str(error):  # The only acceptable error
+        logging.debug("AlreadyExists")
+        return None
+    else:
+        logging.debug("Some other pairing error")
+        return True
+
+
+def connect_exception_handler(error):
+    """
+    @info : Handles the exception ot any failed connect requests.
+    @param : exceptions to device.Connect()
+    @note : more info here:
+            https://git.kernel.org/pub/scm/bluetooth/bluez.git/tree/doc/device-api.txt
+    """
+    error = str(error)
+    if "org.bluez.Error.AlreadyConnected" in str(error):
+        logging.debug("AlreadyConnected")
+        return False
+    else:
+        logging.debug(error)
+        logging.debug("Some other connecting error")
+        return True
 
 def showWaitTime(waitTime, stop_signal):
     # time in ms
@@ -237,8 +489,9 @@ def showWaitTime(waitTime, stop_signal):
     while (waitTime > ( now - start)) and stop_signal[0] == False:
         now = time.time() * 1000
         if (now-delta) > incriment:
-            print(int(now-start))
+            logging.debug(int(now-start))
             delta = now
-    print("waitOver")
+    logging.debug("waitOver")
+
 
 

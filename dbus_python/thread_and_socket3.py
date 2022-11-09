@@ -7,6 +7,8 @@ import config
 import logging
 logging.basicConfig(format = '%(message)s',level = logging.DEBUG)
 
+
+
 # *********************************************************
 # ***               Socket Configuration                ***
 # *********************************************************
@@ -26,6 +28,7 @@ class Controller_Class:
         self.CurrMenu = DispMenu.AAA000
         # self.CurrMenu = Menu.MenuObj(func1 = self.BluetoothObj.Curr_Dongle.Power_Toggle,
         #                              func2 = self.BluetoothObj.Curr_Dongle.Scan_On)
+        logging.debug("|  Power  |         |         |         |         |")
         while not config.EXIT_PROGRAM:
             ButtonOutput = self.getButtonInput()  #Get Input choice as string
             if ButtonOutput != None:
@@ -35,8 +38,10 @@ class Controller_Class:
                 if callable(FunctionToExecute):
                     # Run function
                     self.CurrMenu = FunctionToExecute(self)
-                    self.CurrMenu.printMenu()
+                    # self.CurrMenu.printMenu()
 
+            # Check for state changes in Bluetooth devices.
+            config.BtController.GetDongleVolumes()
         config.BtController.shutdown()
 
     def getButtonInput(self):
