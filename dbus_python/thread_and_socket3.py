@@ -41,7 +41,7 @@ class Controller_Class:
                     # self.CurrMenu.printMenu()
 
             # Check for state changes in Bluetooth devices.
-            config.BtController.GetDongleVolumes()
+            # config.BtController.GetDongleVolumes()
         config.BtController.shutdown()
 
     def getButtonInput(self):

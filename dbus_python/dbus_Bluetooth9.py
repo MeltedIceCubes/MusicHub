@@ -52,7 +52,7 @@ AGENT_PATH           = '/test/agent'
 AGENT_MANAGER        = 'org.bluez.AgentManager1'
 
 # ********************
-#    Dongle Objects
+#    Dongle ObjectsA
 # --------------------
 # Hub_Output_Dongle = None
 # Hub_Input1_Dongle = None

@@ -12,7 +12,7 @@ logging.basicConfig(format = '%(message)s',level = logging.DEBUG)
 #       |---------|---------|---------|---------|---------|
 #  R2   |  Scan   | Devices |  Save   | Delete  |  Back   |
 #       |---------|---------|---------|---------|---------|
-#  R3   |  Play   |  Pause  |  Prev   |  Next   |         |
+#  R3   |  Prev   |  Play   |  Next   |         |         |
 #       ---------------------------------------------------
 
 
@@ -43,6 +43,11 @@ class M_Generic_Display_obj:
             elif not option["Powered"]:
                 return Menu.MenuObj(
                     func1=config.M_R1_Power.Pressed)
+        else:
+            return Menu.MenuObj(
+                func1=config.M_R1_Power.Pressed,
+                func2=config.M_R1_Media.Pressed,
+                func3=config.M_R1_Connect.Pressed)
     def MakeDefR2Menu(self):
         return Menu.MenuObj(
             func1=config.M_R2_Scan.Pressed,
@@ -97,10 +102,9 @@ class M_R1_Media_class(M_Generic_Display_obj):
             Powered=config.BtController.Curr_Dongle.Power_Check()))
         config.M_Encoder = M_Media_Control_Encoder_obj()
         return Menu.MenuObj(
-            func1  = config.M_R3_Play.Pressed,
-            func2  = config.M_R3_Pause.Pressed,
-            func3  = config.M_R3_Prev.Pressed,
-            func4  = config.M_R3_Next.Pressed,
+            func1  = config.M_R3_Prev.Pressed,
+            func2  = config.M_R3_Plause.Pressed,
+            func3  = config.M_R3_Next.Pressed,
             func5  = config.M_R2_Back.Pressed,
             funcEC = config.M_Encoder.PressedEC,
             funcCW = config.M_Encoder.PressedCW,
@@ -182,7 +186,10 @@ class M_R2_Devices_class(M_Generic_Display_obj):
         config.M_Encoder = M_Device_List_Encoder_obj()
         config.M_Encoder.devlist = list(config.BtController.Curr_Dongle.device_list)
         config.M_Encoder.Devices_printFirstDev()
+        config.M_R2_Back.ResetNextMenus()
         config.M_R2_Back.NextMenu.append(self.MakeDefR2Menu())
+        config.M_R2_Back.NextMenu.append(self.MakeDefR1Menu(
+            Powered=config.BtController.Curr_Dongle.Power_Check()))
         logging.debug("|         |         |         |         |  Back   | EClick = Select")
         return self.MakeDeviceMenu()
     def MakeDeviceMenu(self):
@@ -264,6 +271,21 @@ class M_R3_Pause_class(M_Generic_Display_obj):
         
     def Pressed(self, ctrl):
         config.BtController.Curr_Dongle.MediaControl.Pause_Media()
+        return ctrl.CurrMenu
+
+
+class M_R3_Plause_class(M_Generic_Display_obj):
+    """
+            ***  Play/Pause Menu Object  ***
+    Resp:
+     - Media device play/pause control
+    """
+
+    def __init__(self):
+        super().__init__()
+
+    def Pressed(self, ctrl):
+        config.BtController.Curr_Dongle.MediaControl.Plause_Media()
         return ctrl.CurrMenu
 
 class M_R3_Prev_class(M_Generic_Display_obj):
@@ -393,8 +415,7 @@ config.M_R2_Save    = M_R2_Save_class()
 config.M_R2_Delete  = M_R2_Delete_class()
 config.M_R2_Back    = M_R2_Back_class()
 
-config.M_R3_Play    = M_R3_Play_class()
-config.M_R3_Pause   = M_R3_Pause_class()
+config.M_R3_Plause  = M_R3_Plause_class()
 config.M_R3_Prev    = M_R3_Prev_class()
 config.M_R3_Next    = M_R3_Next_class()
 

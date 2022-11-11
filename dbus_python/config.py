@@ -26,8 +26,7 @@ M_R2_Save    = None
 M_R2_Delete  = None
 M_R2_Back    = None
 
-M_R3_Play    = None
-M_R3_Pause   = None
+M_R3_Plause  = None
 M_R3_Prev    = None
 M_R3_Next    = None
 

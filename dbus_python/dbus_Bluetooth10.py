@@ -43,6 +43,7 @@ class Bluetooth_Object_Manager:
         self.Hub_Dongle2 = HubDongle(MAC_LIST[2], self.SysBus)
         self.Hub_Dongle3 = HubDongle(MAC_LIST[3], self.SysBus)
         self.Curr_Dongle = self.Hub_Dongle1
+        self.VolIdleCounter = 0
         self.Dongle1Vol  = 0
         self.Dongle2Vol  = 0
         self.Dongle3Vol  = 0
@@ -57,7 +58,7 @@ class Bluetooth_Object_Manager:
         self.Hub_Dongle2.Power_Off()
         self.Hub_Dongle3.discoverable_off()
         self.Hub_Dongle3.Power_Off()
-        config.PrintToSocket("Dongle Power off")
+        config.PrintToSocket("Dongle Powe12r off")
     def DongleSelect(self, Next = False, Prev = False):
         # This is dumb but I dont want to over complicate it...
         if (Next == False) and (Prev == False): 
@@ -74,19 +75,30 @@ class Bluetooth_Object_Manager:
                 self.Curr_Dongle = self.Hub_Dongle1
 
     def GetDongleVolumes(self):
-        self.Hub_Dongle1.Volume = self.Hub_Dongle1.MediaControl.GetVolume()
-        self.Hub_Dongle2.Volume = self.Hub_Dongle2.MediaControl.GetVolume()
-        self.Hub_Dongle3.Volume = self.Hub_Dongle3.MediaControl.GetVolume()
+        if self.VolIdleCounter == 0:
+            if self.Hub_Dongle1.MediaControl.MediaTransporter != None:
+                self.Hub_Dongle1.Volume = self.Hub_Dongle1.MediaControl.GetVolume()
+            if self.Hub_Dongle2.MediaControl.MediaTransporter != None:
+                self.Hub_Dongle2.Volume = self.Hub_Dongle2.MediaControl.GetVolume()
+            if self.Hub_Dongle3.MediaControl.MediaTransporter != None:
+                self.Hub_Dongle3.Volume = self.Hub_Dongle3.MediaControl.GetVolume()
+        else:
+            self.VolIdleCounter += 1
+            if self.VolIdleCounter >= 15:
+                self.VolIdleCounter = 0
 
     def remove_stragglers(self):
-        dongles = [self.Hub_Dongle1, self.Hub_Dongle2, self.Hub_Dongle3]
-        for dongle in dongles:
-            for straggler in self.Stragglers:
-                try:
-                    dongle.Dongle.remove_device(straggler)
-                    logging.debug("Removed : %s" %straggler)
-                except:
-                    logging.debug("Failed to remove : %s" %straggler)
+
+        for straggler in self.Stragglers:
+            try:
+                self.Hub_Dongle1.Dongle.remove_device(straggler)
+                logging.debug("Removed : %s" %straggler)
+                self.Hub_Dongle2.Dongle.remove_device(straggler)
+                logging.debug("Removed : %s" % straggler)
+                self.Hub_Dongle3.Dongle.remove_device(straggler)
+                logging.debug("Removed : %s" % straggler)
+            except:
+                logging.debug("Failed to remove : %s" %straggler)
 
     def find_dbus_stragglers(self):
         """
@@ -100,10 +112,20 @@ class Bluetooth_Object_Manager:
 
     def recursive_introspection(self, service = 'org.bluez', object_path = '/org/bluez' ):
         match_result = self.get_device_mac(object_path)
-        if match_result is not None:
-            self.Stragglers.append(match_result)
 
-        # Goes through object looking for new objects
+        _obj = self.SysBus.get_object(service,object_path)
+
+        if match_result is not None:
+            try:
+                _device_props = dbus.Interface(_obj, 'org.freedesktop.DBus.Properties')
+                if (_device_props.Get('org.bluez.Device1', 'Trusted') == True):
+                    # We shall spare the trusted.
+                    print("Passing on : %s" %(object_path))
+            except:
+                self.Stragglers.append(match_result)
+
+
+    # Goes through object looking for new objects
         _obj = self.SysBus.get_object(service,object_path)
         _iface = dbus.Interface(_obj, 'org.freedesktop.DBus.Introspectable')
         _xml_string = _iface.Introspect()
@@ -140,7 +162,7 @@ class HubDongle:
         self.scan_time = 5
         self.connected_device = None
         self.Volume = 0
-        self.MediaControl = self.MediaControlClass(self)
+        self.MediaControl = self.MediaControlClass()
         self.Stragglers = list()
         try:
             # Make adapter object with specified mac address.
@@ -276,7 +298,6 @@ class HubDongle:
             except Exception as e:
                 pairResultError = pair_exception_handler(e)
             if pairResultError is not None:
-                pass
                 return False
             config.PrintToSocket(r'*d0-Device Paired\r')
 
@@ -310,18 +331,13 @@ class HubDongle:
         # Note: Do I have to refresh if player object changes?
         # or does it not change?
     class MediaControlClass:
-        def __init__(self, thisDongle):
-            self.thisDongle = thisDongle
+        def __init__(self):
             self.MediaController = None
+            self._ifc_MediaController = None
             self.MediaPlayer     = None
-            self.MediaTransporter= None
-        def PlayStatus_Media(self):
-            """
-            Playing = "playing"
-            Paused  = "paused"
-            
-            """
-            pass
+            self._ifc_MediaPlayer = None
+            self.MediaTransporter = None
+            # self._ifc_MediaTransporter = None
 
         def Play_Media(self):
             if self.MediaController != None:
@@ -333,6 +349,33 @@ class HubDongle:
                 self.MediaController.Pause()
             elif self.MediaPlayer != None:
                 self.MediaPlayer.Pause()
+        def Plause_Media(self):
+            state = self.GetPlayStatus_Media()
+
+            if state == "playing":
+                self.Pause_Media()
+            elif state == "paused":
+                self.Play_Media()
+            else: # Means we can't control shit
+                pass
+
+        def GetPlayStatus_Media(self):
+            val = None
+            try:
+                val = self._ifc_MediaPlayer.Get('org.bluez.MediaPlayer1', 'Status')
+
+            except:
+                try:
+                    val = self._ifc_MediaController.Get('org.bluez.MediaControl1', 'Status')
+                except:
+                    pass
+            return val
+            # None = Failed
+            # 1    = Playing
+            # 2    = Paused
+
+
+
         def Prev_Media(self):
             if self.MediaController != None: 
                 self.MediaController.Previous()
@@ -346,7 +389,8 @@ class HubDongle:
         def VolUp_Media(self):
             volume = None
             try:
-                volume = self.thisDongle.Volume
+                # volume = self.thisDongle.Volume
+                volume = self.GetVolume()
                 volume += 10
                 if volume >127:
                     volume = 127
@@ -358,7 +402,7 @@ class HubDongle:
         def VolDn_Media(self):
             volume = None
             try:
-                volume = self.thisDongle.Volume
+                volume = self.GetVolume()
                 volume -= 10
                 if volume < 0:
                     volume = 0
@@ -402,6 +446,8 @@ class HubDongle:
             _ctrl_obj           = self.SysBus.get_object(BLUEZ_BUS_NAME, connected_device.object_path)
             _ctrl_props_iface   = dbus.Interface(_ctrl_obj, 'org.freedesktop.DBus.Properties')
             _ctrl_properties    = _ctrl_props_iface.GetAll('org.bluez.MediaControl1')
+            self.MediaControl.MediaController = dbus.Interface(_play_obj, 'org.bluez.MediaControl1')
+            self.MediaControl._ifc_MediaController = _ctrl_props_iface
             logging.debug("Got Controller obj")
         except:
             logging.debug("No Controller obj available")
@@ -415,6 +461,7 @@ class HubDongle:
                 _play_props_iface   = dbus.Interface(_play_obj, 'org.freedesktop.DBus.Properties')
                 _play_properties    = _play_props_iface.GetAll('org.bluez.MediaPlayer1')
                 self.MediaControl.MediaPlayer = dbus.Interface(_play_obj, 'org.bluez.MediaPlayer1')
+                self.MediaControl._ifc_MediaPlayer = _play_props_iface
                 logging.debug("Got Player obj")
         except:
             logging.debug("No Player obj available")
