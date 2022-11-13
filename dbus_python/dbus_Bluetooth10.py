@@ -38,7 +38,15 @@ class DeviceIFaceAndProps:
 
 class Bluetooth_Object_Manager:
     def __init__(self):
+        # Define global system bus to use
         self.SysBus = dbus.SystemBus()
+        # Get proxy object
+        bluez_obj   = self.SysBus.get_object('org.bluez', '/org/bluez')
+        # Get agent manager
+        self.agent_manager = dbus.Interface(bluez_obj, 'org.bluez.AgentManager1')
+        # Set agent as NoInputNoOutput mode
+        self.agent_manager.RegisterAgent('/test/agent', "NoInputNoOutput")
+
         self.Hub_Dongle1 = HubDongle(MAC_LIST[1], self.SysBus)
         self.Hub_Dongle2 = HubDongle(MAC_LIST[2], self.SysBus)
         self.Hub_Dongle3 = HubDongle(MAC_LIST[3], self.SysBus)
@@ -120,9 +128,10 @@ class Bluetooth_Object_Manager:
                 _device_props = dbus.Interface(_obj, 'org.freedesktop.DBus.Properties')
                 if (_device_props.Get('org.bluez.Device1', 'Trusted') == True):
                     # We shall spare the trusted.
-                    print("Passing on : %s" %(object_path))
+                    print("Not Removing : %s" %(object_path))
             except:
-                self.Stragglers.append(match_result)
+                # self.Stragglers.append(match_result) # Can't be trusted. Remove
+                self.Stragglers.append(object_path) # Can't be trusted. Remove
 
 
     # Goes through object looking for new objects
@@ -291,34 +300,52 @@ class HubDongle:
         @param : device object
         """
         target_device = device_and_props.deviceObj
+
         if target_device:
-            pairResultError = True
             try:
-                pairResultError = target_device.Pair()
-            except Exception as e:
-                pairResultError = pair_exception_handler(e)
-            if pairResultError is not None:
-                return False
-            config.PrintToSocket(r'*d0-Device Paired\r')
+                if device_and_props.props_iface.Get('org.bluez.Device1', 'Trusted') == True:
+                # TODO : Check if target is already trusted to see if Pair and Trust process
+                #       can be eliminated.
+                    try:
+                        connectResultError = target_device.Connect()
+                    except Exception as eee:
+                        connectResultError = connect_exception_handler(eee)
+                    if connectResultError:
+                        config.PrintToSocket(r'*d0-Failed to Connect\r')
+                    else:
+                        config.PrintToSocket(r'*d0-Device Connected\r')
+                        self.connected_device = target_device
+                        return True
+            except:
+                pass
+            else: # Back to default way. Pair->Trust->Connect
+                pairResultError = True
+                try:
+                    pairResultError = target_device.Pair()
+                except Exception as e:
+                    pairResultError = pair_exception_handler(e)
+                if pairResultError is not None:
+                    return False
+                config.PrintToSocket(r'*d0-Device Paired\r')
 
-            trustResultError = True
-            try:
-                trustResultError = device_and_props.props_iface.Set("org.bluez.Device1", "Trusted", True)
-                config.PrintToSocket(r'*d0-Device Trusted\r')
-            except Exception as ee:
-                config.PrintToSocket(r'*d0-Failed to trust\r')
+                trustResultError = True
+                try:
+                    trustResultError = device_and_props.props_iface.Set("org.bluez.Device1", "Trusted", True)
+                    config.PrintToSocket(r'*d0-Device Trusted\r')
+                except Exception as ee:
+                    config.PrintToSocket(r'*d0-Failed to trust\r')
 
-            try:
-                connectResultError = target_device.Connect()
-            except Exception as eee:
-                connectResultError = connect_exception_handler(eee)
-            if connectResultError:
-                config.PrintToSocket(r'*d0-Failed to Connect\r')
-                return False
-            else:
-                config.PrintToSocket(r'*d0-Device Connected\r')
-                self.connected_device = target_device
-                return True
+                try:
+                    connectResultError = target_device.Connect()
+                except Exception as eee:
+                    connectResultError = connect_exception_handler(eee)
+                if connectResultError:
+                    config.PrintToSocket(r'*d0-Failed to Connect\r')
+                    return False
+                else:
+                    config.PrintToSocket(r'*d0-Device Connected\r')
+                    self.connected_device = target_device
+                    return True
         else:
             config.PrintToSocket(r'*d0-Something went wrong. Try again.\r')
             return False
