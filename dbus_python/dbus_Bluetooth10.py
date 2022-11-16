@@ -47,9 +47,9 @@ class Bluetooth_Object_Manager:
         # Set agent as NoInputNoOutput mode
         self.agent_manager.RegisterAgent('/test/agent', "NoInputNoOutput")
 
-        self.Hub_Dongle1 = HubDongle(MAC_LIST[1], self.SysBus)
-        self.Hub_Dongle2 = HubDongle(MAC_LIST[2], self.SysBus)
-        self.Hub_Dongle3 = HubDongle(MAC_LIST[3], self.SysBus)
+        self.Hub_Dongle1 = HubDongle(MAC_LIST[1], self.SysBus, "Dongle 1")
+        self.Hub_Dongle2 = HubDongle(MAC_LIST[2], self.SysBus, "Dongle 2")
+        self.Hub_Dongle3 = HubDongle(MAC_LIST[3], self.SysBus, "Dongle 3")
         self.Curr_Dongle = self.Hub_Dongle1
         self.VolIdleCounter = 0
         self.Dongle1Vol  = 0
@@ -58,15 +58,17 @@ class Bluetooth_Object_Manager:
 
         self.Stragglers = list()
     def shutdown(self):
-        self.find_dbus_stragglers()
-        self.remove_stragglers()
         self.Hub_Dongle1.discoverable_off()
         self.Hub_Dongle1.Power_Off()
         self.Hub_Dongle2.discoverable_off()
         self.Hub_Dongle2.Power_Off()
         self.Hub_Dongle3.discoverable_off()
         self.Hub_Dongle3.Power_Off()
-        config.PrintToSocket("Dongle Powe12r off")
+        config.PrintToSocket("Dongle Power off")
+        # Maybe clearing stragglers should be last?
+        self.find_dbus_stragglers()
+        self.remove_stragglers()
+
     def DongleSelect(self, Next = False, Prev = False):
         # This is dumb but I dont want to over complicate it...
         if (Next == False) and (Prev == False): 
@@ -159,7 +161,7 @@ class Bluetooth_Object_Manager:
 
 
 class HubDongle:
-    def __init__(self, mac_address: str, bus):
+    def __init__(self, mac_address: str, bus, Name):
         # System Bus Object
         self.SysBus = bus
 
@@ -167,6 +169,7 @@ class HubDongle:
         #  - used to pairing and connecting
         #  - list of potential devices to connect to.
         #  - Used in find_
+        self.Name = Name
         self.device_list = []
         self.scan_time = 5
         self.connected_device = None
@@ -473,7 +476,7 @@ class HubDongle:
             _ctrl_obj           = self.SysBus.get_object(BLUEZ_BUS_NAME, connected_device.object_path)
             _ctrl_props_iface   = dbus.Interface(_ctrl_obj, 'org.freedesktop.DBus.Properties')
             _ctrl_properties    = _ctrl_props_iface.GetAll('org.bluez.MediaControl1')
-            self.MediaControl.MediaController = dbus.Interface(_play_obj, 'org.bluez.MediaControl1')
+            self.MediaControl.MediaController = dbus.Interface(_ctrl_obj, 'org.bluez.MediaControl1')
             self.MediaControl._ifc_MediaController = _ctrl_props_iface
             logging.debug("Got Controller obj")
         except:

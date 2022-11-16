@@ -25,7 +25,7 @@ class Controller_Class:
                 - Pass button parse object to functions that need it.
         @return : None. Just exit loop when Global is quitting.
         '''
-        self.CurrMenu = DispMenu.AAA000
+        self.CurrMenu = DispMenu.M_Generic_Display_obj().MakeDefR1Menu()
         # self.CurrMenu = Menu.MenuObj(func1 = self.BluetoothObj.Curr_Dongle.Power_Toggle,
         #                              func2 = self.BluetoothObj.Curr_Dongle.Scan_On)
         logging.debug("|  Power  |         |         |         |         |")
@@ -82,6 +82,7 @@ def main():
         Controller = Controller_Class()
         # Initialize Bluetooth Object
         config.BtController = Bluetooth.Bluetooth_Object_Manager()
+        DispMenu.InitMenus()
 
         ExitChecker_Thread = threading.Thread(target=ExitChecker)
         Controller_Thread  = threading.Thread(target = Controller.mainLoop)

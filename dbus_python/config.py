@@ -22,12 +22,11 @@ M_R1_No      = None
 
 M_R2_Scan    = None
 M_R2_Devices = None
-M_R2_Save    = None
 M_R2_Delete  = None
 M_R2_Back    = None
 
-M_R3_Plause  = None
 M_R3_Prev    = None
+M_R3_Plause  = None
 M_R3_Next    = None
 
 M_Encoder    = None
