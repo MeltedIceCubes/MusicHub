@@ -153,7 +153,7 @@ class M_R1_No_class(M_Generic_Display_obj):
         config.PrintToSocket(r'*s0-No\r')
         self.Function()
         self.Function = None
-        return self.NextMenu
+        return self.NextMenu()
 
 class M_R2_Scan_class(M_Generic_Display_obj):
     """
@@ -470,7 +470,7 @@ class M_Delete_List_Encoder_obj(M_Device_List_Encoder_obj):
             logging.debug("Failed to remove %s" % object_path)
     # Dongle..remove_device(straggler)
     def DoNothing(self): # for No
-        pass
+        return None
     def MakeDefR2Menu(self):
         return Menu.MenuObj(func1=config.M_R2_Scan.Pressed,
                             func2=config.M_R2_Devices.Pressed,

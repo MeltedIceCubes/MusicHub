@@ -176,6 +176,7 @@ class HubDongle:
         self.Volume = 0
         self.MediaControl = self.MediaControlClass()
         self.Stragglers = list()
+        self.PulseIfc = None
         try:
             # Make adapter object with specified mac address.
             self.Dongle = adapter.Adapter(mac_address)
@@ -380,13 +381,16 @@ class HubDongle:
             elif self.MediaPlayer != None:
                 self.MediaPlayer.Pause()
         def Plause_Media(self):
-            state = self.GetPlayStatus_Media()
-
-            if state == "playing":
-                self.Pause_Media()
-            elif state == "paused":
-                self.Play_Media()
-            else: # Means we can't control shit
+            try:
+                state = self.GetPlayStatus_Media()
+                
+                if state == "playing":
+                    self.Pause_Media()
+                elif state == "paused":
+                    self.Play_Media()
+                else: # Means we can't control shit
+                    pass
+            except:
                 pass
 
         def GetPlayStatus_Media(self):
@@ -407,15 +411,21 @@ class HubDongle:
 
 
         def Prev_Media(self):
-            if self.MediaController != None: 
-                self.MediaController.Previous()
-            elif self.MediaPlayer != None: 
-                self.MediaPlayer.Previous()
+            try: 
+                if self.MediaController != None: 
+                    self.MediaController.Previous()
+                elif self.MediaPlayer != None: 
+                    self.MediaPlayer.Previous()
+            except:
+                pass
         def Next_Media(self):
-            if self.MediaController != None: 
-                self.MediaController.Next()
-            elif self.MediaPlayer != None: 
-                self.MediaPlayer.Next()
+            try:
+                if self.MediaController != None: 
+                    self.MediaController.Next()
+                elif self.MediaPlayer != None: 
+                    self.MediaPlayer.Next()
+            except:
+                pass
         def VolUp_Media(self):
             volume = None
             try:
